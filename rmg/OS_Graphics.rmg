@@ -1,0 +1,312 @@
+
+/*
+ *  Code generation for TimmiOS Graphics Library Routines:
+ *
+ *    gr_h_line
+ *    gr_v_line
+ *    gr_rect
+ *    gr_rect_fill
+ *    gr_circle
+ *    gr_circle_fill
+ *
+ *  NB: Remember to ensure that all registers are 'PUSH'ed & 'POP'ed 
+ *      before & after adding the auto-generated code to the library assembly
+ *      code so that no registers are 'lost' after the routine has run.
+ *      Only PUSH/POP R0 if there is no result returned.
+ */
+
+// Temporarily comment out everything bar 'gr_pixel' from Graphics.lib
+#include "./rmg/includes/Graphics.lib"
+
+// Draw a horizontal line with colour 'col' from (x1,y) to (x2,y)
+void gr_h_line(int x1, int x2, int y, int col)
+{
+   int xp, dx, i, tmp;
+
+   dx = x2 - x1;
+
+   if (dx < 0) {
+      // Swap x1 & x2
+      tmp = x1;
+      x1 = x2;
+      x2 = tmp;
+      dx = -dx;
+   }
+
+   for (i = 0; i <= dx; i = i+1) {
+      xp = x1 + i;
+      gr_pixel(xp,y,col);
+   }
+}
+
+// Draw a vertical line with colour 'col' from (x,y1) to (x,y2)
+void gr_v_line(int x, int y1, int y2, int col)
+{
+   int yp, dy, i, tmp;
+
+   dy = y2 - y1;
+
+   if (dy < 0) {
+      // Swap y1 & y2
+      tmp = y1;
+      y1 = y2;
+      y2 = tmp;
+      dy = -dy;
+   }
+
+   for (i = 0; i <= dy; i = i+1) {
+      yp = y1 + i;
+      gr_pixel(x,yp,col);
+   }
+}
+
+// Draw a line with colour 'col' from (x1,y1) to (x2, y2)
+void gr_line(int x1, int y1, int x2, int y2, int col)
+{
+   int dx, dy, x, y, sx, sy, tmp, i;
+   int grad_gt_1, p, lt_adj,gt_adj;
+
+   dx = x2 - x1;
+   dy = y2 - y1;
+   
+   if (dx == 0) {
+      gr_v_line(x1,y1,y2,col);
+      return;
+   }
+
+   if (dy == 0) {
+      gr_h_line(x1,x2,y1,col);
+      return;
+   }
+
+   // The following code uses "Bresenham's Line Drawing Algorithm", see:
+   // https://www.uobabylon.edu.iq/eprints/publication_2_22893_6215.pdf
+
+   // 1st point
+   x = x1;
+   y = y1;
+   gr_pixel(x,y,col);
+
+   // Adjust for negative gradients
+   sx = 1;
+   sy = 1;
+   if (dx < 0) {
+      dx = -dx;
+      sx = -1;
+   }
+   if (dy < 0) {
+      dy = -dy;
+      sy = -1;
+   }
+    
+   // Adjust for |gradient| > 1
+   grad_gt_1 = 0;
+   if (dy > dx) {
+      tmp = dx;
+      dx = dy;
+      dy = tmp;
+      grad_gt_1 = 1;
+   }
+        
+   // Set up the initial 'difference' & 'loop adjustments'
+   lt_adj = 2*dy;
+   p = lt_adj - dx;  // = 2*dy - dx
+   gt_adj = p - dx;  // = 2*dy - 2*dx
+
+   // Perform the algorithm
+   for (i = 0; i < dx; i=i+1) {
+      if (p < 0) {
+         if (grad_gt_1 == 1) {
+            y += sy;
+         }
+         else {
+            x += sx;
+         }
+         p += lt_adj;
+      }
+      else {
+         x += sx;
+         y += sy;
+         p += gt_adj;
+      }
+      // Next point
+      gr_pixel(x,y,col);
+   }
+}
+
+// Draw a rectangle with colour 'col' and corners (x1,y1) & (x2,y2)
+void gr_rect(int x1, int y1, int x2, int y2, int col)
+{
+   gr_h_line(x1,x2,y1,col);
+   gr_v_line(x1,y1,y2,col);
+   gr_v_line(x2,y1,y2,col);
+   gr_h_line(x1,x2,y2,col);
+}
+
+// Draw a filled rectangle with colour 'col' and corners (x1,y1) & (x2,y2)
+void gr_rect_fill(int x1, int y1, int x2, int y2, int col)
+{
+   int i;
+
+   for (i = y1; i <= y2; i = i + 1) {
+      gr_h_line(x1,x2,i,col);
+   }
+}
+
+// Draw a circle with colour 'col', centre '(xc,yc)' & radius 'r'
+// The 'Mid-Point Circle Drawing Algorithm' is used to generate the circle's points
+// See: https://www.geeksforgeeks.org/mid-point-circle-drawing-algorithm/
+void gr_circle(int xc, int yc, int r, int col)
+{
+   int x, y, P, xp, yp;
+
+	x = r;
+   y = 0;
+   P = 1 - r;
+
+	// Draw the points on the axes
+   xp = xc + x;
+   gr_pixel(xp,yc,col);
+
+   xp = xc - x;
+   gr_pixel(xp,yc,col);
+
+   yp = yc + x;
+   gr_pixel(xc,yp,col);
+
+   yp = yc - x;
+   gr_pixel(xc,yp,col);
+	
+	// Draw all the other points
+	while (x > y) {
+		y++;
+		
+		// Mid-point is inside or on the perimeter
+		if ((P == 0) || (P <= 0)) {
+         // P = P + 2*y + 1;
+         P = P + (2*y);
+         P++;
+      }
+			
+		// Mid-point is outside the perimeter
+		else {
+			x--;
+         // P = P - 2*x + 2*y + 1
+         P = P - (2*x);
+         P = P + (2*y);
+         P++;
+		}
+		
+		// Have all the points been drawn ?
+		if (x < y) {
+			return;
+      }
+		
+		// Draw the generated point and its reflection in the other octants
+      xp = xc + x;
+      yp = yc + y;
+      gr_pixel(xp,yp,col);
+
+      xp = xc - x;
+      yp = yc + y;
+      gr_pixel(xp,yp,col);
+
+      xp = xc + x;
+      yp = yc - y;
+      gr_pixel(xp,yp,col);
+
+      xp = xc - x;
+      yp = yc - y;
+      gr_pixel(xp,yp,col);
+
+		// If the point is on the line y = x we're done drawing for this point
+		if (x != y) {
+         xp = xc + y;
+         yp = yc + x;
+         gr_pixel(xp,yp,col);
+
+         xp = xc - y;
+         yp = yc + x;
+         gr_pixel(xp,yp,col);
+
+         xp = xc + y;
+         yp = yc - x;
+         gr_pixel(xp,yp,col);
+
+         xp = xc - y;
+         yp = yc - x;
+         gr_pixel(xp,yp,col);
+		}
+	}
+}
+
+// Draw a filled circle with colour 'col', centre '(xc,yc)' & radius 'r'
+// The 'Mid-Point Circle Drawing Algorithm' is used to generate the circle's points
+// See: https://www.geeksforgeeks.org/mid-point-circle-drawing-algorithm/
+void gr_circle_fill(int xc, int yc, int r, int col)
+{
+   int x, y, P, xp1, xp2, yp;
+
+	x = r;
+   y = 0;
+   P = 1 - r;
+
+	// Draw the points on the axes
+   xp1 = xc - x;
+   xp2 = xc + x;
+   gr_h_line(xp1,xp2,yc,col);
+
+   yp = yc + x;
+   gr_pixel(xc,yp,col);
+
+   yp = yc - x;
+   gr_pixel(xc,yp,col);
+	
+	// Draw all the other points
+	while (x > y) {
+		y++;
+		
+		// Mid-point is inside or on the perimeter
+		if ((P == 0) || (P <= 0)) {  // Instead of 'if (P <= 0)' - Compiler uses unsigned nums ...
+         // P = P + 2*y + 1;
+         P = P + (2*y);
+         P++;
+
+      }
+			
+		// Mid-point is outside the perimeter
+		else {
+			x--;
+         // P = P - 2*x + 2*y + 1
+         P = P - (2*x);
+         P = P + (2*y);
+         P++;
+		}
+		
+		// Have all the points been drawn ?
+		if (x < y) {
+			return;
+      }
+		
+		// Draw the generated point and its reflection in the other octants
+      xp1 = xc - x;
+      xp2 = xc + x;
+      yp = yc + y;
+      gr_h_line(xp1,xp2,yp,col);
+
+      yp = yc - y;
+      gr_h_line(xp1,xp2,yp,col);
+
+		// If the point is on the line y = x we're done drawing for this point
+		if (x != y) {
+         xp1 = xc - y;
+         xp2 = xc + y;
+         yp = yc + x;
+         gr_h_line(xp1,xp2,yp,col);
+
+         yp = yc - x;
+         gr_h_line(xp1,xp2,yp,col);
+		}
+	}
+}
+

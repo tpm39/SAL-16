@@ -1,0 +1,51 @@
+
+/*
+ *  A wee test for calling subroutines
+ */
+ 
+// Globals
+int c = 10;
+int j = 5;
+int x, y;
+
+// Return a number
+int get_num()
+{
+   return 34;
+}
+
+// An arithmetic routine
+int do_stuff(int a, int b)
+{
+   int i, j;
+   int x = 4;
+   int y = -b;
+
+   i = get_num();
+
+   j = (a - y) + ((b - c) + x);
+
+   return (i + j);
+}
+
+/* 
+ * At the end of the test:
+ *   c = 10
+ *   j = 5
+ *   x = 48
+ *   y = 29
+ */
+void main()
+{
+   /* The Main Program */
+   int a,c;
+   int b = /* Five :) */ 5;
+
+   a = 10;
+   c = do_stuff(a,b);      // c = 48
+   x = c;                  // x = 48
+
+   c = do_stuff(7, -3);    // c = 29
+   y = c;                  // y = 29         
+}
+

@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="SAL16Chips">
+    <output-path>$PROJECT_DIR$/out/artifacts/SAL16Chips</output-path>
+    <root id="archive" name="SAL16Chips.jar">
+      <element id="module-output" name="SAL16Chips" />
+    </root>
+  </artifact>
+</component>

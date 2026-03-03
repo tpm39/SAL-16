@@ -1,0 +1,63 @@
+
+/*
+ *  Test some Floating Point & Maths Library stuff
+ */
+
+#include "./rmg/includes/Maths.lib"
+
+int TRUE  = 0xffff;
+int FALSE = 0x0000;
+
+float add, sub, mul, div;
+float sqrt, sin, cos, tan;
+float nan, inf, trip_x;
+
+int gt = FALSE;
+int eq = FALSE;
+int lt = FALSE;
+
+// Triple a float
+float triple(float x)
+{
+   return (3.0 * x);
+}
+
+void main()
+{
+   float x = 2.3e2;
+   float y;
+   float z = -0.87;
+   float ang = (MATH_PI/5.0) / MATH_DEG_RAD;    // 36 deg : 0x5080
+
+   y = -0.87;
+
+   add = x + y;                                 //  229.130 : 0x5b29
+   sub = x - y;                                 //  230.870 : 0x5b37
+   mul = x * y;                                 // -200.100 : 0xda41
+   div = x / y;                                 // -264.368 : 0xdc21
+
+   sqrt = fmath_sqrt(x);                        // 15.16575 : 0x4b95
+   sin = fmath_sin(ang);                        // 0.587785 : 0x38b4
+   cos = fmath_cos(ang);                        // 0.809017 : 0x3a79
+   tan = fmath_tan(ang);                        // 0.726543 : 0x39d0
+
+   nan = fmath_sqrt(y);                         // nan : 0x7e00
+   inf = x / 0.0;                               // inf : 0x7c00
+
+   x = triple(-12.34);
+   trip_x = triple(x);                          // -111.06 : 0xd6f1
+
+   // And some comparison tests
+   if (y > x) {
+      gt = TRUE;
+   }
+
+   if (y == z) {
+      eq = TRUE;
+   }
+
+   if (x <= z) {
+      lt = TRUE;
+   }
+}
+

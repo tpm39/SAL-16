@@ -1,0 +1,73 @@
+
+/*
+ *  A Temperature Converter
+ */
+
+#include "./rmg/includes/BIOS.lib"
+
+char entC[] = "Temp in C: ";
+char entF[] = "Temp in F: ";
+char tempF[] = "\nTemp in F = ";
+char tempC[] = "\nTemp in C = ";
+
+// Conversion constants
+int A = 9;
+int B = 5;
+int C = 32;
+
+// Convert from Celsius to Farenheit
+int C_to_F(int cel)
+{
+   int faren;
+   // faren = ((9/5)*cel)+32
+   faren = A * cel;
+   faren = faren/B;
+   faren += C;
+   return faren;
+}
+
+// Convert from Farenheit to Celsius
+int F_to_C(int faren)
+{
+   int cel;
+   // cel = (5/9)*(faren-32)
+   cel = faren - C;
+   cel = B * cel;
+   cel = cel/A;
+   return cel;
+}
+
+void main()
+{
+   int C1, F1, C2, F2;
+   char* ptr;
+
+   // Perform the Celsius to Farenheit conversion
+   ptr = &entC;
+   os_print_str(ptr);
+   C1 = os_read_int();
+
+   F1 = C_to_F(C1);
+
+   ptr = &tempF;
+   os_print_str(ptr);
+   os_print_int(F1);
+
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+
+   // Perform the Farenheit to Celsius conversion
+   ptr = &entF;
+   os_print_str(ptr);
+   F2 = os_read_int();
+
+   C2 = F_to_C(F2);
+
+   ptr = &tempC;
+   os_print_str(ptr);
+   os_print_int(C2);
+
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+}
+

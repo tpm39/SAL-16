@@ -1,0 +1,203 @@
+
+/*
+ *  Some wee tests of the 'float' Maths Library
+ */
+
+#include "./rmg/includes/BIOS.lib"
+#include "./rmg/includes/Maths.lib"
+
+char fns_res[] = "Funcs Res = ";
+char vec_add[] = "Vec Add = (";
+char dp_res[]  = "Dot Prod = ";
+char mat_add[] = "Mat Add = |";
+char mat_mul[] = "Mat Mul = |";
+char mat_nl[]  = "          |";
+
+// Vectors
+float va[] = {1, 3, 1.0, 2.0, 3.0};  // Including dimension (1 x 3) header
+float vb[] = {1, 3, 4.0, 5.0, 6.0};  // Including dimension (1 x 3) header
+int V_SIZE = 5;
+float vc[V_SIZE];
+
+// Matrices
+float mA[] = {2, 2, 1.0, 2.0,    // mA = |1 2|  Including dimension (2 x 2) header
+                    3.0, 4.0 };  //      |3 4|
+float mB[] = {2, 2, 5.0, 6.0,    // mB = |5 6|  Including dimension (2 x 2) header
+                    7.0, 8.0 };  //      |7 8|
+int M_SIZE = 6;
+float mC[M_SIZE];
+
+// Do a calculation using the non vector/matrix Library functions
+void test_funcs()
+{
+   float x, y;
+   int n;
+   char* ptr;
+
+   x = -2.0;
+   x = fmath_abs(x);     // x = 2.0
+
+   n = 4;
+   x = fmath_pow(x, n);  // x = x^n = 16.0
+
+   x *= 3.0;             // x = 48.0
+
+   x = fmath_sqrt(x);    // x = 6.928
+
+   y = x;
+   x = -25.0;
+   x /= y;               // x = -3.608
+
+   // Display the result
+   ptr = &fns_res;
+   os_print_str(ptr);
+   os_print_float(x);
+
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+}
+
+// Do a vector addition & a dot product
+void test_vecs()
+{
+   float* pA, pB, pC;
+   char* ptr;
+   float dot_prod;
+   int i;
+   char c;
+
+   pA = &va;
+   pB = &vb;
+   pC = &vc;
+
+   // Do a vector addition & display the result
+   fmath_vec_add(pA, pB, pC);  // vc = va + vb = (5.0, 7.0, 9.0)
+
+   ptr = &vec_add;
+   os_print_str(ptr);
+
+   // Display the vector elements
+   for (i = 2; i < V_SIZE; i=i+1) {
+      os_print_float(vc[i]);
+      if (i < (V_SIZE-1)) {
+         // Display 'vector separaters'
+         c = ',';
+         os_print_char(c);
+         c = ' ';
+      } 
+      else {
+         // Display 'end of vector'
+         c = ')';
+      }
+      os_print_char(c);
+   }
+
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+
+   // Do a dot product & display the result
+   dot_prod = fmath_vec_dot_prod(pA, pB);  // va.vb = 32.0
+
+   ptr = &dp_res;
+   os_print_str(ptr);
+   os_print_float(dot_prod);
+
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+}
+
+// Display a 'result matrix'
+void disp_res_mat(char* func)
+{
+   int rows, cols;
+   int i, j, pos;
+   char* ptr;
+   char c;
+   float val;
+   int* addr;
+
+   os_print_str(func);
+
+   // rows = mC[0]
+   addr = &rows;
+   val = mC[0];
+   os_mem_set(addr,val);
+
+   // cols = mC[1]
+   addr = &cols;
+   val = mC[1];
+   os_mem_set(addr,val);
+
+   // Display the matrix elements
+   for (i = 0; i < rows; i=i+1) {
+      for (j = 0; j < cols; j=j+1) {
+         pos = (i * rows) + j;
+         pos += 2;
+         if (mC[pos] < 10.0) {
+            // Alignment for elements < 10
+            c = ' ';
+            os_print_char(c);
+         }
+         os_print_float(mC[pos]);
+         if (mC[pos] >= 10.0) {
+            // Alignment for elements >= 10
+            c = '0';
+            os_print_char(c);
+         }
+         if (j == (cols-1)) {
+            // Deal with the end of a row
+            c = '|';
+            os_print_char(c);
+            os_print_char(BIOS_LF);
+            if (i < (rows-1)) {
+               // Move to the next row
+               ptr = &mat_nl;
+               os_print_str(ptr);
+            }
+            else {
+               // The matrix has been displayed
+               os_print_char(BIOS_LF);
+            }
+         }
+         else {
+            // Display a 'matrix separater'
+            c = ' ';
+            os_print_char(c);
+         }
+      }
+   }
+}
+
+// Do a matrix addition & multiplication
+void test_mats()
+{
+   float* pA, pB, pC;
+   char* ptr;
+
+   pA = &mA;
+   pB = &mB;
+   pC = &mC;
+
+   // Do a matrix addition & display the result
+   fmath_mat_add(pA, pB, pC);  // mC = mA + mB = | 6.0  8.0|
+                               //                |10.0 12.0|
+
+   ptr = &mat_add;
+   disp_res_mat(ptr);
+
+   // Do a matrix multiplication & display the result
+   fmath_mat_mul(pA, pB, pC);  // mC = mA * mB = |19.0 22.0|
+                               //                |43.0 50.0|
+
+   ptr = &mat_mul;
+   disp_res_mat(ptr);
+}
+
+void main()
+{
+   // Do all the tests
+   test_funcs();
+   test_vecs();
+   test_mats();
+}
+

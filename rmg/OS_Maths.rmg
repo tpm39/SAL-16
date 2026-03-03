@@ -1,0 +1,156 @@
+
+/*
+ *  Code generation for TimmiOS Maths Library Routines:
+ *
+ *    imath_sqrt
+ *    imath_mat_mul
+ *    fmath_mat_mul
+ * 
+ *  NB: Remember to ensure that all registers are 'PUSH'ed & 'POP'ed 
+ *      before & after adding the auto-generated code to the library assembly
+ *      code so that no registers are 'lost' after the routine has run.
+ *      Only PUSH/POP R0 if there is no result returned.
+ */
+
+#include "./rmg/includes/BIOS.lib"
+
+// Calculate the Integer Square Root of x
+// See: https://www.geeksforgeeks.org/square-root-of-an-integer/
+int imath_sqrt(int x)
+{
+   int i, mid, end, res;
+
+   int start = 1;
+
+	if (x < 0) {
+      os_exit(0x0130);  // ERR_INV_DATA
+   }
+
+	if ((x == 0) || (x == 1)) {
+		return x;
+   }
+
+	// Do a binary search for floor(sqrt(x))
+	end = x >> 1;  // end = x/2
+
+	while (start <= end) {
+		mid = start + end;
+      mid = mid >> 1;  // mid = mid/2
+      i = mid * mid;
+
+		// x is a perfect square
+		if (i == x) {
+			return mid;
+      }
+
+		if (i < x) {
+			start = mid + 1;
+			res = mid;
+      }
+		else {
+			end = mid - 1;
+      }
+   }
+
+	return res;
+}
+
+// Matrix Multiplication for 'int's
+void imath_mat_mul(int* A, int* B, int* C)
+{
+   int rowsA, colsA, rowsB, colsB;
+   int idxA, idxB, idxC;
+   int i, j, k, val;
+
+   rowsA = A[0];
+   colsA = A[1];
+
+   rowsB = B[0];
+   colsB = B[1];
+
+   if (colsA != rowsB) {
+      os_exit(0x0150);  // ERR_BAD_MAT_DIMS
+   }
+
+   C[0] = rowsA;
+   C[1] = colsB;
+
+   idxC = 2;
+
+   for (i = 0; i < rowsA; i=i+1) {
+      for (j = 0; j < colsB; j=j+1) {
+         idxA = 2 + (i * colsA);
+         idxB = 2 + j;
+         val = 0;
+         for (k = 0; k < rowsB; k=k+1) {
+            val = val + (A[idxA] * B[idxB]);
+            idxA++;
+            idxB = idxB + colsB;
+         }
+         C[idxC] = val;
+         idxC++;
+      }
+   }
+}
+
+// Matrix Multiplication for 'float's
+void fmath_mat_mul(float* A, float* B, float* C)
+{
+   int rowsA, colsA, rowsB, colsB;
+   int idxA, idxB, idxC;
+   int i, j, k;
+   float val;
+   int* addr;
+
+   // rowsA = A[0]
+   addr = &rowsA;
+   val = A[0];
+   os_mem_set(addr,val);
+
+   // colsA = A[1]
+   addr = &colsA;
+   val = A[1];
+   os_mem_set(addr,val);
+
+   // rowsB = B[0]
+   addr = &rowsB;
+   val = B[0];
+   os_mem_set(addr,val);
+
+   // colsB = B[1]
+   addr = &colsB;
+   val = B[1];
+   os_mem_set(addr,val);
+
+   if (colsA != rowsB) {
+      os_exit(0x0150);  // ERR_BAD_MAT_DIMS
+   }
+
+   // C[0] = rowsA
+   val = C;
+   addr = &addr;
+   os_mem_set(addr,val);
+   os_mem_set(addr,rowsA);
+
+   // C[1] = colsB
+   addr += 1;
+   os_mem_set(addr,colsB);
+
+   idxC = 2;
+
+   for (i = 0; i < rowsA; i=i+1) {
+      for (j = 0; j < colsB; j=j+1) {
+         idxA = 2 + (i * colsA);
+         idxB = 2 + j;
+         val = 0.0;
+         for (k = 0; k < rowsB; k=k+1) {
+            val = val + (A[idxA] * B[idxB]);
+            idxA++;
+            idxB = idxB + colsB;
+         }
+         C[idxC] = val;
+         idxC++;
+      }
+   }
+}
+

@@ -1,0 +1,61 @@
+
+/*
+ *  A software implementation of the 'Fast Inverse Square Root' algorithm
+ *
+ *  See: https://en.m.wikipedia.org/wiki/Fast_inverse_square_root
+ */
+
+#include "./rmg/includes/BIOS.lib"
+
+int MAGIC_NUMBER = 0x59e0;
+
+int ADDR_I = 0xc000 - 1;  // Mem addr just before the heap
+
+// FISR Algorithm - Return 1/sqrt(*x)
+float fisr(float* x)
+{
+   float y, x2, i_flt;
+   int i;
+
+   // 'WTF' Section
+
+   // Type casting workaround for:
+   //   i = (int)*x;
+   i_flt = *x;
+   os_mem_set(ADDR_I, i_flt);
+   i = os_mem_read(ADDR_I);
+
+   i = MAGIC_NUMBER - (i >> 1);
+
+   // Type casting workaround for:
+   //   float* ptr;
+   //   ptr = (float*)&i;
+   //   y = *ptr;
+   os_mem_set(ADDR_I, i);
+   y = os_mem_read(ADDR_I);
+
+   // Newton-Raphson Section
+   x2 = *x;
+   x2 *= 0.5;
+   y = y * (1.5 - ((x2 * y) * y));
+   y = y * (1.5 - ((x2 * y) * y));
+
+   return y;
+}
+
+void main()
+{
+   float x, x_fisr;
+   float* ptr;
+
+   // Get x
+   x = os_get_in(BIOS_IN1);
+
+   // x_fisr = 1/sqrt(x)
+   ptr = &x;
+   x_fisr = fisr(ptr);
+
+   // Display 1/sqrt(x)
+   os_disp_out(BIOS_OUT1, x_fisr);
+}
+

@@ -1,0 +1,6 @@
+
+; Casts Library Functions
+
+.equ cast_int   0x5000
+.equ cast_float 0x5200
+

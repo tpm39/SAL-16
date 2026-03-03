@@ -1,0 +1,35 @@
+
+/*
+ *  Sum 1 + 2 + ... + N
+ */
+
+#include "./rmg/includes/BIOS.lib"
+
+char entN[] = "N: ";
+char sumN[] = "\n\n1+2+...+N = ";
+
+void main()
+{
+   int n, i;
+   int sum = 0;
+   char* ptr;
+
+   // Get N
+   ptr = &entN;
+   os_print_str(ptr);
+   n = os_read_int();
+
+   // Perform sum
+   for (i = 1; i <= n; i = i+1) {
+      sum += i;
+   }
+
+   // Display Sum
+   ptr = &sumN;
+   os_print_str(ptr);
+   os_print_int(sum);
+
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+}
+

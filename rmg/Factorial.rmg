@@ -1,0 +1,35 @@
+
+/*
+ *  Calculate the Factorial of a number
+ */
+
+#include "./rmg/includes/BIOS.lib"
+
+char entX[] = "X: ";
+char factX[] = "\n\nX! = ";
+
+void main()
+{
+   int num, res, i;
+   char* ptr;
+
+   // Get the number
+   ptr = &entX;
+   os_print_str(ptr);
+   num = os_read_int();
+
+   // Calculate & display the factorial
+   res = 1;
+   
+   for (i = 1; i <= num; i = i+1) {
+      res = i * res;
+   }
+
+   ptr = &factX;
+   os_print_str(ptr);
+   os_print_int(res);
+   
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+}
+

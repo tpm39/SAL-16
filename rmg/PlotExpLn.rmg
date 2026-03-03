@@ -1,0 +1,38 @@
+
+/*
+ *  Draw an exp() & an ln() on the Graphics Screen
+*/
+
+#include "./rmg/includes/Maths.lib"
+#include "./rmg/includes/Graphics.lib"
+
+void main()
+{
+   float x, y;
+   int i;
+
+   // Draw the X & Y Axes
+   gr_line(0, 127, 255, 127, GR_LT_BROWN);
+   gr_line(127, 0, 127, 255, GR_LT_BROWN);
+
+   x = -127.0;
+   for (i = 0; i < 256; i = i+1) {
+      
+      // Plot exp() pt: y = 40 * exp(x/70)
+      y = x / 70.0;
+      y = fmath_exp(y);
+      y *= 40.0;
+      gr_fp_pixel(x, y, GR_RED);
+
+      // Plot ln() pt: y = 70 * ln(x/40)
+      if (x > 0.0) {
+         y = x / 40.0;
+         y = fmath_ln(y);
+         y *= 70.0;
+         gr_fp_pixel(x, y, GR_BLUE);
+      }
+
+      x += 1.0;
+   }
+}
+

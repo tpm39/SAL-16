@@ -1,0 +1,25 @@
+
+NAND Neural Net
+
+Pointers/Arrays ...
+
+SAL-16F-C: Check the CORDIC Unit re. 'Negating Y'
+
+RMG: Test int/float for/while
+
+Port all ‘Lists Stuff’ from RTM-16 - Also do it in RMG code too
+
+SAL-16I-C: New ROM (TimmiOS) & test some *.mc’s
+
+SAL-16V-C: Redo all *.asm’s - To test ‘.code’
+
+HALT in SAL-16x-C & Emulator
+
+FPU Flags in hardware ...
+
+“Spurious” FP plot points
+
+Re-test all *.asm
+
+Re-test all *.rmg
+

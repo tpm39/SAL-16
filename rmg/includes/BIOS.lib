@@ -1,0 +1,33 @@
+
+; BIOS Library Functions
+
+.equ os_get_in      0x1000
+.equ os_disp_out    0x1030
+.equ os_read_char   0x1050
+.equ os_print_char  0x1080
+.equ os_read_str    0x10a0
+.equ os_print_str   0x10e0
+.equ os_mem_set     0x1110
+.equ os_mem_setn    0x1130
+.equ os_mem_read    0x1150
+.equ os_read_int    0x1170
+.equ os_print_int   0x11d0
+.equ os_read_uint   0x1230
+.equ os_print_uint  0x1280
+.equ os_read_float  0x1330
+.equ os_print_float 0x16b0
+.equ os_exit        0x1a90
+
+
+// BIOS Library Constants
+
+int BIOS_IN1  = 3;
+int BIOS_IN2  = 7;
+int BIOS_OUT1 = 6;
+int BIOS_OUT2 = 10;
+
+char BIOS_LF     = '\n';
+char BIOS_NULL   = '\0';
+char BIOS_QUOTES = '\"';
+char BIOS_BSLASH = '\\';
+

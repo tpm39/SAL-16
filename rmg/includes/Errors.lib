@@ -1,0 +1,12 @@
+
+// Error Codes
+
+int ERR_DIV_BY_0     = 0x0100;
+int ERR_POW_UNDEF    = 0x0110;
+int ERR_BAD_INT      = 0x0120;
+int ERR_INV_DATA     = 0x0130;
+int ERR_BAD_VEC_DIMS = 0x0140;
+int ERR_BAD_MAT_DIMS = 0x0150;
+int ERR_LN_LTE_ZERO  = 0x0160;
+int ERR_NO_FPU       = 0x0f00;
+

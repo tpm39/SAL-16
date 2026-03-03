@@ -1,0 +1,53 @@
+
+/*
+ *  Test the Casts Library stuff
+ */
+
+#include "./rmg/includes/BIOS.lib"
+#include "./rmg/includes/Casts.lib"
+
+char entX[] = "X (int): ";
+char floatX[] = "(float)X = ";
+
+char entY[] = "Y (float): ";
+char intY[] = "(int)Y = ";
+
+void main()
+{
+   int x, iy;
+   float y, fx;
+   char* ptr;
+
+   while (1) {
+      // Get X
+      ptr = &entX;
+      os_print_str(ptr);
+      x = os_read_int();
+
+      os_print_char(BIOS_LF);
+
+      // Show (float)X
+      fx = cast_float(x);
+      ptr = &floatX;
+      os_print_str(ptr);
+      os_print_float(fx);
+
+      os_print_char(BIOS_LF);
+      os_print_char(BIOS_LF);
+
+      // Get Y
+      ptr = &entY;
+      os_print_str(ptr);
+      y = os_read_float();
+
+      // Show (int)Y
+      iy = cast_int(y);
+      ptr = &intY;
+      os_print_str(ptr);
+      os_print_int(iy);
+
+      os_print_char(BIOS_LF);
+      os_print_char(BIOS_LF);
+   }
+}
+

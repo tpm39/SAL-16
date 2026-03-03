@@ -1,0 +1,54 @@
+
+/*
+ *  Display the nth Fibonacci number
+ */
+
+#include "./rmg/includes/BIOS.lib"
+
+char entN[] = "N: ";
+char fibN[] = "\n\nFib(N) = ";
+char invN[] = "\n\nN must be > 0 ...\n\n";
+
+void main()
+{
+   int n, f, x, y, i;
+   char* ptr;
+
+   // Get n
+   ptr = &entN;
+   os_print_str(ptr);
+   n = os_read_int();
+
+   if (n <= 0) {
+      // Invalid entry
+      ptr = &invN;
+      os_print_str(ptr);
+      return;
+   }
+
+   if ((n == 1) || (n == 2)) {
+      // Fib(1) = 0 & Fib(2) = 1
+      f = n - 1;
+   }
+   else {
+      // The previous 2 Fibonacci Nums
+      x = 0;
+      y = 1;
+
+      // Calculate the next Fibonacci Num
+      for (i = 3; i <= n; i = i+1) {
+         f = x + y;
+         x = y;
+         y = f;
+      }
+   }
+
+   // Display the nth Fibonacci number
+   ptr = &fibN;
+   os_print_str(ptr);
+   os_print_int(f);
+
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+}
+

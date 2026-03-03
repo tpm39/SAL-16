@@ -1,0 +1,63 @@
+
+/*
+ *  Show if two numbers are coprime
+ */
+
+#include "./rmg/includes/BIOS.lib"
+
+char entX[] = "X: ";
+char entY[] = "Y: ";
+char coprime[] = "\n\nCoprime: ";
+char yep[] = "Yep\n\n";
+char nope[] = "Nope\n\n";
+ 
+// Compute the GCD of x and y
+int gcd(int x, int y)
+{
+   while (x != y) {
+      if (x > y) {
+         x = x - y;
+      }
+      else {
+         y = y - x;
+      }
+   }
+
+   return x;
+}
+
+void main()
+{
+   int x, y, res;
+   char* ptr;
+
+   // Get the numbers
+   ptr = &entX;
+   os_print_str(ptr);
+   x = os_read_int();
+
+   os_print_char(BIOS_LF);
+
+   ptr = &entY;
+   os_print_str(ptr);
+   y = os_read_int();
+
+   // Calculate the GCD
+   res = gcd(x,y);
+
+   ptr = &coprime;
+   os_print_str(ptr);
+
+   // Show if they're coprime or not   
+   if (res == 1) {
+      // They're coprime - Display 'Yep'
+      ptr = &yep;
+      os_print_str(ptr);
+   }
+   else {
+      // They're not coprime - Display 'Nope'
+      ptr = &nope;
+      os_print_str(ptr);
+   }
+}
+

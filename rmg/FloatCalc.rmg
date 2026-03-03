@@ -1,0 +1,746 @@
+
+/*
+ *  A Floating Point Calculator
+ *  
+ *  The available maths ops are:
+ *     + - * / sqr sqrt
+ *     recip pow exp ln
+ *     sin cos tan
+ * 
+ *  There is also functionality for:
+ *     Clearing an op (AC) & clearing an entry (C)
+ *     Memory (M MC M+ M-)
+ *     Recall the last result (R)
+ *     Help (H)
+ *     Quit (Q)
+ */
+
+#include "./rmg/includes/BIOS.lib"
+#include "./rmg/includes/Maths.lib"
+#include "./rmg/includes/Strings.lib"
+
+int TRUE  = 0xffff;
+int FALSE = 0x0000;
+
+int ALL_CLR = 0xffff;
+int CLEAR   = 0xfffe;
+
+int CHR_A_U = 0x41;
+int CHR_C_U = 0x43;
+int CHR_H_U = 0x48;
+int CHR_M_U = 0x4d;
+int CHR_Q_U = 0x51;
+int CHR_R_U = 0x52;
+
+int CHR_A_L = 0x61;
+int CHR_C_L = 0x63;
+int CHR_M_L = 0x6d;
+int CHR_R_L = 0x72;
+
+char entOp[] = "Op: ";
+char entX[]  = "X: ";
+char entY[]  = "Y: ";
+char op[10];
+
+char dispMem[] = "[M] ";
+char mem_clr[] = "MC";
+char mem_add[] = "M+";
+char mem_sub[] = "M-";
+
+char add[]   = "+";
+char sub[]   = "-";
+char mul[]   = "*";
+char div[]   = "/";
+char sqr[]   = "SQR";
+char sqrt[]  = "SQRT";
+char recip[] = "RECIP";
+char sPow[]  = "POW";
+char sExp[]  = "EXP";
+char sLn[]   = "LN";
+char sin[]   = "SIN";
+char cos[]   = "COS";
+char tan[]   = "TAN";
+
+char addXY[]  = "\nX + Y = ";
+char subXY[]  = "\nX - Y = ";
+char mulXY[]  = "\nX * Y = ";
+char divXY[]  = "\nX / Y = ";
+char sqrX[]   = "\nX^2 = ";
+char sqrtX[]  = "\nsqrt(X) = ";
+char recipX[] = "\n1/X = ";
+char powXY[]  = "\nX^Y = ";
+char expX[]   = "\nexp(X) = ";
+char lnX[]    = "\nln(X) = ";
+char sinX[]   = "\nsin(X) = ";
+char cosX[]   = "\ncos(X) = ";
+char tanX[]   = "\ntan(X) = ";
+
+char low_acc1[] = "\nNB: Maybe excessive Taylor\n";
+char low_acc2[] = "    Series inaccuracies ...\n";
+char pow_warn[] = "\n\nNB: A non-int Y will give 1.0\n";
+char invalid[]  = "\nInvalid Op ...";
+char str_NaN[]  = " : NaN ...\n";
+char bye[]      = "\nBye Now :)\n\n";
+
+char title[]      = "Floating Point Calculator\n";
+char uline[]      = "=========================\n";
+char mathsOps1[]  = "Maths Ops: + - * / sqr sqrt\n";
+char mathsOps2[]  = "           recip pow exp ln\n";
+char mathsOps3[]  = "           sin cos tan\n";
+char memOps[]     = "Mem Ops:   M MC M+ M-\n";
+char miscOps1[]   = "Misc Ops:  AC C\n";
+char miscOps2[]   = "           Last (R)esult\n";
+char miscOps3[]   = "           (H)elp (Q)uit\n";
+
+float mem = 0.0;
+float res = 0.0;
+
+// Return ALL_CLR, CLEAR or NaN if there's
+// an unexpected input while reading a number
+float read_err(char c)
+{
+   float err;
+   float* pErr; 
+   char* pNaN;
+   char c2;
+
+   pErr = &err;
+
+   // Is it an ALL_CLR ?
+   if ((c == CHR_A_L) || (c == CHR_A_U)) {
+      c2 = os_read_char();
+      if ((c2 == CHR_C_L) || (c2 == CHR_C_U)) {
+         os_print_char(BIOS_LF);
+         os_print_char(BIOS_LF);
+         os_mem_set(pErr, ALL_CLR);
+         return err;
+      }
+   }
+
+   // Is it a CLEAR ?
+   if ((c == CHR_C_L) || (c == CHR_C_U)) {
+      os_print_char(BIOS_LF);
+      os_mem_set(pErr, CLEAR);
+      return err;
+   }
+
+   // It's a NaN
+   pNaN = &str_NaN;
+   os_print_str(pNaN);
+   os_mem_set(pErr, MATH_NAN);
+   return err;
+}
+
+// Convert an 'int' digit to a 'float'
+// (Modified 'int_dig_to_flt' from 'BIOS_Floats.rmg')
+float conv_dig_itf(int val)
+{
+   if (val == 9) {
+      return 9.0;
+   }
+   else { if (val == 8) {
+      return 8.0;
+   }
+   else { if (val == 7) {
+      return 7.0;
+   }
+   else { if (val == 6) {
+      return 6.0;
+   }
+   else { if (val == 5) {
+      return 5.0;
+   }
+   else { if (val == 4) {
+      return 4.0;
+   }
+   else { if (val == 3) {
+      return 3.0;
+   }
+   else { if (val == 2) {
+      return 2.0;
+   }
+   else { if (val == 1) {
+      return 1.0;
+   }
+   else {
+      return 0.0;
+   }}}}}}}}}
+}
+
+// Read a 'float' number from the keyboard
+// (Modified 'os_read_float' from 'BIOS_Floats.rmg')
+float get_float()
+{
+   char c;
+   int dig, pow, i;
+   float n, mul;
+   float err;
+
+   int neg = 0;
+   int got_dp = 0;
+   float num = 0.0;
+   float div = 10.0;
+
+   float* pNum;
+   pNum = &num;
+
+   c = os_read_char();
+   // if c is 'M' or 'R' return memory or last result
+   if ((c == CHR_M_L) || (c == CHR_M_U)) {
+      os_print_char(BIOS_LF);
+      return mem;
+   }
+   else { if ((c == CHR_R_L) || (c == CHR_R_U)) {
+      os_print_char(BIOS_LF);
+      return res;
+   }
+   // If c is '-' (0x2d) set negate flag & get next digit
+   else { if (c == 0x2d) {
+      neg = 1;
+      c = os_read_char();
+   }}}
+
+   // Return error code if c isn't a digit - Outwith '0' (0x30) to '9' (0x39)
+   if ((c < 0x30) || (c > 0x39)) {
+      err = read_err(c);
+      return err;
+   }
+
+   // Keep getting digits until 'Enter' (0x0a) or 'e' (0x65) pressed
+   while ((c != 0x0a) && (c != 0x65)) {
+      // If c is '.' (0x2e) note decimal point enetered & get next digit
+      if (c == 0x2e) {
+         got_dp = 1;
+         c = os_read_char();
+         continue;
+      }
+
+      // Return error code if c isn't a digit - Outwith '0' (0x30) to '9' (0x39)
+      if ((c < 0x30) || (c > 0x39)) {
+         err = read_err(c);
+         return err;
+      }
+
+      // Update num with the last digit
+      dig = c - 0x30;
+      n = conv_dig_itf(dig);
+      if (got_dp == 0) {
+         num *= 10.0;
+      }
+      else {
+         n /= div;
+         div *= 10.0;
+      }
+      num += n;
+
+      c = os_read_char();
+   }
+
+   // Negate num if required
+   if (neg == 1) {
+      num *= (-1.0);
+   }
+
+   // if c is 'Enter' (0x0a) there's no exponent so just return
+   if (c == 0x0a) {
+      return num;
+   }
+
+   // Get the exponent
+   neg = 0;
+   c = os_read_char();
+   // If c is '-' (0x2d) set negate flag & get next digit
+   if (c == 0x2d) {
+      neg = 1;
+      c = os_read_char();
+   }
+
+      // Return error code if c isn't a digit - Outwith '0' (0x30) to '9' (0x39)
+      if ((c < 0x30) || (c > 0x39)) {
+         err = read_err(c);
+         return err;
+      }
+
+   // Adjust num by the exponent
+   pow = c - 0x30;
+   if (neg == 1) {
+      mul = 0.1;
+   }
+   else {
+      mul = 10.0;
+   }
+   for (i = 0; i < pow; i=i+1) {
+      num *= mul;
+   }
+
+   c = os_read_char();
+   // Return error code if c isn't 'Enter' (0x0a)
+   if (c != 0x0a) {
+      err = read_err(c);
+      return err;
+   }
+
+   return num;
+}
+
+// Get a 'float' number
+float get_num(int get_x)
+{
+   float n;
+   char* pEnt;
+   float* pN;
+
+   // Initialise n = NaN
+   pN = &n;
+   os_mem_set(pN, MATH_NAN);
+
+   // Keep trying until we get a number or ALL_CLR
+   while ((n == MATH_NAN) || (n == CLEAR)) {
+      if (get_x) {
+         pEnt = &entX;
+      }
+      else {
+         pEnt = &entY;
+      }
+      os_print_str(pEnt);
+      n = get_float();
+   }
+   return n;
+}
+
+// Show the Help Menu
+void show_help()
+{
+   char* ptr;
+
+   ptr = &mathsOps1;
+   os_print_str(ptr);
+   ptr = &mathsOps2;
+   os_print_str(ptr);
+   ptr = &mathsOps3;
+   os_print_str(ptr);
+   ptr = &memOps;
+   os_print_str(ptr);
+   ptr = &miscOps1;
+   os_print_str(ptr);
+   ptr = &miscOps2;
+   os_print_str(ptr);
+   ptr = &miscOps3;
+   os_print_str(ptr);
+}
+
+// Calculate x^y
+float pow(float x, int y)
+{
+   float res = 1.0;
+   int neg = FALSE;
+   int i;
+
+   if (y == 0) {
+      return res;
+   }
+
+   if (y < 0) {
+      y = -y;
+      neg = TRUE;
+   }
+
+   for (i = 0; i < y; i=i+1) {
+      res *= x;
+   }
+
+   if (neg) {
+      res = 1.0 / res;
+   }
+
+   return res;
+}
+
+// Calculate exp(x) using the Taylor Series
+float exp(float x)
+{
+   float res = 1.0;
+   float term = 1.0;
+   float f = 1.0;
+   int n;
+
+   int TERMS = 25;
+
+   for (n = 1; n <= (TERMS-1); n=n+1) {
+      term /= f;    // term = x^n / n!
+      term *= x;
+      res += term;
+      f += 1.0;
+   }
+
+   return res;
+}
+
+// Calculate ln(x) using the Taylor Series
+float ln(float x)
+{
+   float pow, mult, mult2;
+   float res = 0.0;
+   float div = 1.0;
+   float* pRes;
+   int i;
+
+   int TERMS = 25;
+
+   // ln(-x) = NaN
+   if (x <= 0.0) {
+      pRes = &res;
+      os_mem_set(pRes, MATH_NAN);
+      return res;
+   }
+
+   mult = (x - 1.0) / (x + 1.0);
+   mult2 = mult * mult;
+   pow = mult;
+
+   for (i = 1; i <= TERMS; i = i+1) {
+      res = res + (pow / div);
+      pow *= mult2; 
+      div += 2.0;
+   }
+
+   return (2.0 * res);
+}
+
+// Perform calculations
+void main()
+{
+   float x, y;
+   char* ptr, pOp;
+   int match, disp_res, disp_mem, intY;
+
+   // Intro
+   ptr = &title;
+   os_print_str(ptr);
+   ptr = &uline;
+   os_print_str(ptr);
+   show_help();
+
+   while (TRUE) {
+      disp_res = TRUE;
+      disp_mem = FALSE;
+
+      // Display '[M]' if the memory's not empty
+      if (mem != 0.0) {
+         ptr = &dispMem;
+         os_print_str(ptr);
+      }
+
+      // Get op
+      ptr = &entOp;
+      os_print_str(ptr);
+      pOp = &op;
+      os_read_str(pOp);
+      str_upper(pOp);
+      os_print_char(BIOS_LF);
+
+      // Quit ?
+      if (op[0] == CHR_Q_U) {
+         ptr = &bye;
+         os_print_str(ptr);
+         break;
+      }
+
+      // Help ?
+      if (op[0] == CHR_H_U) {
+         os_print_char(BIOS_LF);
+         show_help();
+         continue;
+      }
+
+      // Memory clear ?
+      ptr = &mem_clr;
+      match = str_cmp(ptr, pOp);
+      if (match) {
+         // Clear memory
+         mem = 0.0;
+         os_print_char(BIOS_LF);
+         continue;
+      }
+
+      // Memory plus ?
+      else {
+      ptr = &mem_add;
+      match = str_cmp(ptr, pOp);
+      if (match) {
+         // Add last result to memory
+         mem += res;
+         os_print_char(BIOS_LF);
+         continue;
+      }
+
+      // Memory minus ?
+      else {
+      ptr = &mem_sub;
+      match = str_cmp(ptr, pOp);
+      if (match) {
+         // Subtract last result from memory
+         mem -= res;
+         os_print_char(BIOS_LF);
+         continue;
+      }
+
+      // Display memory ?
+      else {
+      if (op[0] == CHR_M_U) {
+         disp_res = FALSE;
+         disp_mem = TRUE;
+      }
+
+      // Addition ?
+      else {
+      ptr = &add;
+      match = str_cmp(ptr, pOp);
+      if (match) {
+         // Do addition
+         x = get_num(TRUE);
+         if (x == ALL_CLR) {
+            continue;
+         }
+         y = get_num(FALSE);
+         if (y == ALL_CLR) {
+            continue;
+         }
+         res = x + y;
+         ptr = &addXY;
+         os_print_str(ptr);
+      }
+
+      // Subtraction ?
+      else {
+      ptr = &sub;
+      match = str_cmp(ptr, pOp);
+      if (match) {
+         // Do subtraction
+         x = get_num(TRUE);
+         if (x == ALL_CLR) {
+            continue;
+         }
+         y = get_num(FALSE);
+         if (y == ALL_CLR) {
+            continue;
+         }
+         res = x - y;
+         ptr = &subXY;
+         os_print_str(ptr);
+      }
+
+      // Multiplication ?
+      else {
+      ptr = &mul;
+      match = str_cmp(ptr, pOp);
+      if (match) {
+         // Do multiplication
+         x = get_num(TRUE);
+         if (x == ALL_CLR) {
+            continue;
+         }
+         y = get_num(FALSE);
+         if (y == ALL_CLR) {
+            continue;
+         }
+         res = x * y;
+         ptr = &mulXY;
+         os_print_str(ptr);
+      }
+
+      // Division ?
+      else {
+      ptr = &div;
+      match = str_cmp(ptr, pOp);
+      if (match) {
+         // Do division
+         x = get_num(TRUE);
+         if (x == ALL_CLR) {
+            continue;
+         }
+         y = get_num(FALSE);
+         if (y == ALL_CLR) {
+            continue;
+         }
+         res = x / y;
+         ptr = &divXY;
+         os_print_str(ptr);
+      }
+
+      // Square ?
+      else {
+      ptr = &sqr;
+      match = str_cmp(ptr, pOp);
+      if (match) {
+         // Do square
+         x = get_num(TRUE);
+         if (x == ALL_CLR) {
+            continue;
+         }
+         res = x * x;
+         ptr = &sqrX;
+         os_print_str(ptr);
+      }
+
+      // Square root ?
+      else {
+      ptr = &sqrt;
+      match = str_cmp(ptr, pOp);
+      if (match) {
+         // Do square root
+         x = get_num(TRUE);
+         if (x == ALL_CLR) {
+            continue;
+         }
+         res = imath_sqrt(x);
+         ptr = &sqrtX;
+         os_print_str(ptr);
+      }
+
+      // Reciprical ?
+      else {
+      ptr = &recip;
+      match = str_cmp(ptr, pOp);
+      if (match) {
+         // Do Reciprical
+         x = get_num(TRUE);
+         if (x == ALL_CLR) {
+            continue;
+         }
+         res = 1.0 / x;
+         ptr = &recipX;
+         os_print_str(ptr);
+      }
+
+      // Last result ?
+      else {
+      if (op[0] == CHR_R_U) {
+         // Nothing to do ...
+      }
+
+      // Power ?
+      else {
+      ptr = &sPow;
+      match = str_cmp(ptr, pOp);
+      if (match) {
+         // Do power
+         x = get_num(TRUE);
+         if (x == ALL_CLR) {
+            continue;
+         }
+         // Get Y (an integer)
+         ptr = &entY;
+         os_print_str(ptr);
+         intY = os_read_int();
+
+         res = pow(x, intY);
+         ptr = &pow_warn;
+         os_print_str(ptr);
+         ptr = &powXY;
+         os_print_str(ptr);
+      }
+
+      // Exp ?
+      else {
+      ptr = &sExp;
+      match = str_cmp(ptr, pOp);
+      if (match) {
+         // Do exp
+         x = get_num(TRUE);
+         if (x == ALL_CLR) {
+            continue;
+         }
+         res = exp(x);
+         ptr = &low_acc1;
+         os_print_str(ptr);
+         ptr = &low_acc2;
+         os_print_str(ptr);
+         ptr = &expX;
+         os_print_str(ptr);
+      }
+
+      // Ln ?
+      else {
+      ptr = &sLn;
+      match = str_cmp(ptr, pOp);
+      if (match) {
+         // Do ln
+         x = get_num(TRUE);
+         if (x == ALL_CLR) {
+            continue;
+         }
+         res = ln(x);
+         ptr = &low_acc1;
+         os_print_str(ptr);
+         ptr = &low_acc2;
+         os_print_str(ptr);
+         ptr = &lnX;
+         os_print_str(ptr);
+      }
+
+      // Sin ?
+      else {
+      ptr = &sin;
+      match = str_cmp(ptr, pOp);
+      if (match) {
+         // Do sin
+         x = get_num(TRUE);
+         if (x == ALL_CLR) {
+            continue;
+         }
+         res = fmath_sin(x);
+         ptr = &sinX;
+         os_print_str(ptr);
+      }
+
+      // Cos ?
+      else {
+      ptr = &cos;
+      match = str_cmp(ptr, pOp);
+      if (match) {
+         // Do cos
+         x = get_num(TRUE);
+         if (x == ALL_CLR) {
+            continue;
+         }
+         res = fmath_cos(x);
+         ptr = &cosX;
+         os_print_str(ptr);
+      }
+
+      // Tan ?
+      else {
+      ptr = &tan;
+      match = str_cmp(ptr, pOp);
+      if (match) {
+         // Do tan
+         x = get_num(TRUE);
+         if (x == ALL_CLR) {
+            continue;
+         }
+         res = fmath_tan(x);
+         ptr = &tanX;
+         os_print_str(ptr);
+      }
+
+      // Invalid op ...
+      else {
+         disp_res = FALSE;
+         ptr = &invalid;
+         os_print_str(ptr);
+      }}}}}}}}}}}}}}}}}}
+
+      // Display result/memory
+      if (disp_res) {
+         os_print_float(res);
+      }
+      else { if (disp_mem) {
+         os_print_float(mem);
+      }}
+
+      os_print_char(BIOS_LF);
+      os_print_char(BIOS_LF);
+   }
+}
+

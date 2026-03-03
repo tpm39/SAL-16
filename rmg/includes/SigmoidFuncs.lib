@@ -1,0 +1,6 @@
+
+; Sigmoid Functions
+
+.equ sigmoid            0xa000
+.equ sigmoid_derivative 0xa050
+

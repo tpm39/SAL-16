@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: com.sal16.chips.Components
+Class-Path: logisim-evolution-5.0.1hc.jar
+

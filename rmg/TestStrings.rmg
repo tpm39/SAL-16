@@ -1,0 +1,113 @@
+
+/*
+ *  Some wee tests for chars & strings
+ */
+
+#include "./rmg/includes/BIOS.lib"
+#include "./rmg/includes/Strings.lib"
+
+int BUF_SIZE = 25;
+
+char sal[] = "G'Day \"Sal\" :)\n\n";
+char nums[11] = "0123456789";
+char wrong[] = " X";
+char buf[BUF_SIZE];
+
+// Get the char at position pos in str
+char char_at(char* str, int pos)
+{
+   char c;
+   c = str[pos];
+   return c;
+}
+
+// Get the char at position pos in str to c
+void char_set(char* str, int pos, char c)
+{
+   str[pos] = c;
+}
+
+/*
+ *  Display "G'Day "Sal" :)" & 2 LF's
+ *  Display "G'DAY "SAL" !!" & 2 LF's
+ */
+void Test1()
+{
+   char* p1, p2;
+
+   // Copy sal to buf
+   p1 = &sal;
+   p2 = &buf;
+   str_cpy(p1, p2);
+
+   // Change the end of buf
+   // from ':)' to '!!' and
+   // make buf upper case
+   buf[12] = '!';
+   buf[13] = '!';
+   str_upper(p2);
+
+   // Display sal & buf
+   os_print_str(p1);
+   os_print_str(p2);
+}
+
+/*
+ *  Display "9123*56=89 X" & 2 LF's
+ */
+void Test2()
+{
+   char c;
+   char* p1, p2, p3;
+
+   p1 = &nums;
+   c = char_at(p1, 9);
+   nums[0] = c;               // nums = "9123456789"
+
+   c = '*';
+   char_set(p1, 4, c);        // nums = "9123*56789"
+   char_set(p1, 7, '=');      // nums = "9123*56=89"
+
+   p2 = &wrong;
+   p3 = &buf;
+   str_cat(p1, p2, p3);       // nums = "9123*56=89 X"
+
+   os_print_str(p3);          // Display nums & 2 LF's
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+}
+
+/*
+ *  Display "A local string" & 2 LF's
+ */
+void Test3()
+{
+   int LCL_SIZE = 15;
+   char lcl[LCL_SIZE] = "A local string";
+   char* ptr;
+   int i;
+
+   // Copy the local str to the heap (lcl -> buf)
+   // As we can't display local strings ...
+   for (i = 0; i < LCL_SIZE; i = i+1) {
+      buf[i] = lcl[i];
+   }
+
+   // Add 2 LF's to the end of buf
+   i--;
+   buf[i] = '\n';
+   i++;
+   buf[i] = '\n';
+   i++;
+   buf[i] = BIOS_NULL;
+
+   // Display buf
+   ptr = &buf;
+   os_print_str(ptr);
+}
+
+void main()
+{
+   Test3();
+}
+

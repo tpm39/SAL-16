@@ -1,0 +1,17 @@
+
+To Build 'SAL16Chips.jar'
+-------------------------
+
+1) Rebuild Project
+
+2) Build Artifacts ... -> SAL16Chips -> Rebuild
+
+
+'SAL16Chips.jar' will be in:
+
+   Java/out/artifacts/SAL16Chips
+
+
+This should be copied to the 'Logisim' folder in order to use 'SAL-16J'.
+
+

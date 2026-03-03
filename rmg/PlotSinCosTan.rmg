@@ -1,0 +1,42 @@
+
+/*
+ *  Draw Sin, Cos & Tan on the Graphics Screen
+*/
+
+#include "./rmg/includes/Graphics.lib"
+#include "./rmg/includes/Maths.lib"
+
+void main()
+{
+   float x, y;
+   int i;
+
+   // Draw the X & Y Axes
+   gr_line(0, 127, 255, 127, GR_LT_BROWN);
+   gr_line(127, 0, 127, 255, GR_LT_BROWN);
+   
+   x = -127.0;
+   for (i = 0; i < 255; i = i+1) {
+
+      // Plot y = 60*sin(4*x)
+      y = x * 4.0;
+      y = fmath_sin(y);
+      y *= 60.0;
+      gr_fp_pixel(x, y, GR_RED);
+
+      // Plot y = 60*cos(4*x)
+      y = x * 4.0;
+      y = fmath_cos(y);
+      y *= 60.0;
+      gr_fp_pixel(x, y, GR_BLUE);
+
+      // Plot y = 10*tan(4*x)
+      y = x * 4.0;
+      y = fmath_tan(y);
+      y *= 10.0;
+      gr_fp_pixel(x, y, GR_PINK);
+
+      x += 1.0;
+   }
+}
+

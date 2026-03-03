@@ -1,0 +1,61 @@
+
+/*
+ *  A software implementation of a 'Fast Inverse Quad Root' algorithm
+ *
+ *  This is based on 'FastInvSqrt_1.rmg'
+ */
+
+#include "./rmg/includes/BIOS.lib"
+
+int MAGIC_NUMBER = 0x4b53;
+
+int ADDR_I = 0xc000 - 1;  // Mem addr just before the heap
+
+// FIQR Algorithm - Return 1/qdrt(*x)
+float fiqr(float* x)
+{
+   float y, x4, i_flt;
+   int i;
+
+   // 'WTF' Section
+
+   // Type casting workaround for:
+   //   i = (int)*x;
+   i_flt = *x;
+   os_mem_set(ADDR_I, i_flt);
+   i = os_mem_read(ADDR_I);
+
+   i = MAGIC_NUMBER - (i >> 2);
+
+   // Type casting workaround for:
+   //   float* ptr;
+   //   ptr = (float*)&i;
+   //   y = *ptr;
+   os_mem_set(ADDR_I, i);
+   y = os_mem_read(ADDR_I);
+
+   // Newton-Raphson Section
+   x4 = *x;
+   x4 *= 0.25;
+   y = y * (1.25 - ((((x4 * y) * y) * y) * y));
+   y = y * (1.25 - ((((x4 * y) * y) * y) * y));
+
+   return y;
+}
+
+void main()
+{
+   float x, x_fiqr;
+   float* ptr;
+
+   // Get x
+   x = os_get_in(BIOS_IN1);
+
+   // x_fiqr = 1/qdrt(x)
+   ptr = &x;
+   x_fiqr = fiqr(ptr);
+
+   // Display 1/qdrt(x)
+   os_disp_out(BIOS_OUT1, x_fiqr);
+}
+

@@ -1,0 +1,34 @@
+
+/*
+ *  Calculate the area & circumference of a circle (radius r)
+ */
+
+#include "./rmg/includes/BIOS.lib"
+#include "./rmg/includes/Maths.lib"
+
+// Area is the return value, and
+// Circumference is returned by reference.
+float area_circum(float r, float* c)
+{
+   float a;
+
+   *c = (2.0 * MATH_PI) * r;
+   a = MATH_PI * (r * r);
+
+   return a;
+}
+
+void main()
+{
+   float r, a, c;
+   float* ptr;
+
+   r = os_get_in(BIOS_IN1);         // Get radius
+
+   ptr = &c;
+   a = area_circum(r, ptr);
+
+   os_disp_out(BIOS_OUT1, a);      // Display area
+   os_disp_out(BIOS_OUT2, c);      // Display circumference
+}
+

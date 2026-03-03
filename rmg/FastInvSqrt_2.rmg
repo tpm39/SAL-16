@@ -1,0 +1,88 @@
+
+/*
+ *  Division & 'Square Rooting' using the 'Fast Inverse Square Root' algorithm
+ *
+ *  See: https://en.m.wikipedia.org/wiki/Fast_inverse_square_root
+ */
+
+#include "./rmg/includes/BIOS.lib"
+
+int MAGIC_NUMBER = 0x59e0;
+
+int ADDR_I = 0xc000 - 1;  // Mem addr just before the heap
+
+// FISR Algorithm - Return 1/sqrt(*x)
+float fisr(float* x)
+{
+   float y, x2, i_flt;
+   int i;
+
+   // 'WTF' Section
+
+   // Type casting workaround for:
+   //   i = (int)*x;
+   i_flt = *x;
+   os_mem_set(ADDR_I, i_flt);
+   i = os_mem_read(ADDR_I);
+
+   i = MAGIC_NUMBER - (i >> 1);
+
+   // Type casting workaround for:
+   //   float* ptr;
+   //   ptr = (float*)&i;
+   //   y = *ptr;
+   os_mem_set(ADDR_I, i);
+   y = os_mem_read(ADDR_I);
+
+   // Newton-Raphson Section
+   x2 = *x;
+   x2 *= 0.5;
+   y = y * (1.5 - ((x2 * y) * y));
+   y = y * (1.5 - ((x2 * y) * y));
+
+   return y;
+}
+
+// Division - Return: x/y
+float div(float x, float y)
+{
+   float y_fisr;
+   float* ptr;
+
+   // y_fisr = 1/sqrt(y)
+   ptr = &y;
+   y_fisr = fisr(ptr);
+
+   // Return: x * 1/sqrt(y) * 1/sqrt(y)
+   return ((x * y_fisr) * y_fisr);
+}
+
+// Square Root - Return sqrt(x)
+float sqrt(float x)
+{
+   float x_fisr;
+   float* ptr;
+
+   // x_fisr = 1/sqrt(x)
+   ptr = &x;
+   x_fisr = fisr(ptr);
+
+   // Return: x * 1/sqrt(x)
+   return (x * x_fisr);
+}
+
+void main()
+{
+   float x, y, z;
+   float* ptr;
+
+   x = os_get_in(BIOS_IN1);      // Get x
+   y = os_get_in(BIOS_IN2);      // Get y
+ 
+   z = div(x, y);                // Display x/y
+   os_disp_out(BIOS_OUT1, z);
+
+   z = sqrt(x);                  // Display sqrt(x)
+   os_disp_out(BIOS_OUT2, z);
+}
+

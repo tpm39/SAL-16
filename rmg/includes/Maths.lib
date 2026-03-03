@@ -1,0 +1,72 @@
+
+; Maths Library Functions
+
+.equ imath_abs          0x2000
+.equ imath_pow          0x2010
+.equ imath_mod          0x2040
+.equ imath_fact         0x2050
+.equ imath_sqrt         0x2070
+ 
+.equ imath_vec_add      0x21b0
+.equ imath_vec_sub      0x21f0
+.equ imath_vec_sc_mul   0x2230
+.equ imath_vec_dot_prod 0x2260
+
+.equ imath_mat_add      0x22a0
+.equ imath_mat_sub      0x22e0
+.equ imath_mat_sc_mul   0x2320
+.equ imath_mat_mul      0x2350
+.equ imath_mat_trans    0x2510
+.equ imath_mat_det_2    0x2550
+.equ imath_mat_det_3    0x2590
+
+.equ imath_cmplx_re     0x2620
+.equ imath_cmplx_im     0x2630
+.equ imath_cmplx_conj   0x2640
+.equ imath_cmplx_add    0x2660
+.equ imath_cmplx_sub    0x2680
+.equ imath_cmplx_sc_mul 0x26a0
+.equ imath_cmplx_mul    0x26c0
+
+.equ fmath_abs          0x26f0
+.equ fmath_pow          0x2700
+.equ fmath_sqrt         0x2740
+.equ fmath_sin          0x2750
+.equ fmath_cos          0x27a0
+.equ fmath_tan          0x27f0
+
+.equ fmath_vec_add      0x2840
+.equ fmath_vec_sub      0x2880
+.equ fmath_vec_sc_mul   0x28c0
+.equ fmath_vec_dot_prod 0x28f0
+
+.equ fmath_mat_add      0x2930
+.equ fmath_mat_sub      0x2970
+.equ fmath_mat_sc_mul   0x29b0
+.equ fmath_mat_mul      0x29e0
+.equ fmath_mat_trans    0x2bf0
+.equ fmath_mat_det_2    0x2c10
+.equ fmath_mat_det_3    0x2c50
+
+.equ fmath_cmplx_re     0x2ce0
+.equ fmath_cmplx_im     0x2cf0
+.equ fmath_cmplx_conj   0x2d00
+.equ fmath_cmplx_add    0x2d20
+.equ fmath_cmplx_sub    0x2d50
+.equ fmath_cmplx_sc_mul 0x2d80
+.equ fmath_cmplx_mul    0x2da0
+
+.equ fmath_exp          0x2dd0
+.equ fmath_ln           0x2e10
+
+
+// Maths Library Constants
+
+float MATH_PI      = 3.141593;
+float MATH_E       = 2.718282;
+float MATH_DEG_RAD = 0.017453;
+
+int MATH_NAN     = 0x7e00;
+int MATH_INF_POS = 0x7c00;
+int MATH_INF_NEG = 0xfc00;
+

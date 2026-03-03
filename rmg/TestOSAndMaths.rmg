@@ -1,0 +1,49 @@
+
+/*
+ *  Test some TimmiOS & 'int' Maths Library routines
+ */
+
+#include "./rmg/includes/BIOS.lib"
+#include "./rmg/includes/Maths.lib"
+
+char entX[] = "X: ";
+char entY[] = "Y: ";
+
+char fact[] = "X! = ";
+char pow[] = "X^Y = ";
+
+void main()
+{
+   int x, y, z;
+   char* ptr;
+
+   // Get x
+   ptr = &entX;
+   os_print_str(ptr);
+   x = os_read_int();
+   os_print_char(BIOS_LF);
+
+   // Get y
+   ptr = &entY;
+   os_print_str(ptr);
+   y = os_read_int();
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+
+   // Display x!
+   ptr = &fact;
+   os_print_str(ptr);
+   z = imath_fact(x);
+   os_print_int(z);
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+
+   // Display x^y
+   ptr = &pow;
+   os_print_str(ptr);
+   z = imath_pow(x, y);
+   os_print_int(z);
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+}
+

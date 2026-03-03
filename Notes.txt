@@ -1,0 +1,186 @@
+
++--------------------+
+| SAL-16x-C Versions |
++--------------------+
+
+There are 4 'flavours' of 'SAL-16x-C':
+
+SAL-16F-C: This is built using 'chips' comprised of Logisim Primitives.
+
+SAL-16I-C: This 'SAL-16F-C', but with the FPU & its associated circuitry removed.
+
+SAL-16J-C: This is built using 'chips' from the 'SAL-16 Chips' Java Library.
+
+SAL-16V-C: This is the Logisim version of SAL-16 that the Verilog code is based on.
+
+
++-----------------+
+| Logisim Version |
++-----------------+
+
+I am using the Kevin Walsh version of Logisim-Evolution, which can be found at:
+
+   https://github.com/kevinawalsh/logisim-evolution
+
+
++--------------------+
+| SAL-16x-C Download |
++--------------------+
+
+The SAL-16x-C.zip download has the following structure:
+
+SAL-16x-C
+   asm            : The assembly files I have written
+   Docs           : The documentation
+   Graphics       : Some graphics backgrounds & notes on how to generate a background
+   Java           : The files for the creation of the 'SAL-16 Chips' Java Library
+   Logisim        : The SAL-16x-C Logisim circuits
+   mc             : Folder for the generated machine code files
+   Microcode      : The microcode files
+   Notes.txt      : These notes :)
+   rmg            : The 'RMG' files I have written
+   Tools          : Folder containing the assembler, linker, compiler & emulator
+   Verilog        : The files for a Verilog version of 'SAL-16'
+
+
++-----------+
+| Microcode |
++-----------+
+
+To generate the microcode required for the control unit run the following in the 'Microcode' folder:
+
+   python3 Microcode.py
+
+This generates 'MicrocodeLUT.uc', which should be loaded into the control unit's Look Up Table (uCode LUT), and 'Microcode.uc' which should be loaded in the control unit's ROM (uCode ROM).
+
+
++-----------+
+| Assembler |
++-----------+
+
+To assemble a file, eg Prog.asm, run the following from the command line in the folder where 'SAL-16x-C' was installed:
+
+   python3 ./Tools/Assembler.py [-h] ./asm/Prog.asm ./mc/Prog.mc
+
+where '-h' is an optional argument used to display the Assembler's usage.
+
+Prog.mc can then be loaded into memory in Logisim, or be run from the emulator.
+
+
+A list of the instructions that can be used in 'asm' files is at:
+
+   ./Docs/Instruction Set.pdf
+
+
+A list of the directives that can be used in 'asm' files is at:
+
+   ./Docs/Assembler Directives.pdf
+
+
++--------+
+| Linker |
++--------+
+
+To link a number of files, eg Prog1.mc, Prog2.mc and Prog3.mc to produce Prog.mc, run the following from the command line in the folder where 'SAL-16x-C' was installed:
+
+   python3 ./Tools/Linker.py [-h] ./mc/Prog.mc ./mc/Prog1.mc ./mc/Prog2.mc ./mc/Prog3.mc
+
+where '-h' is an optional argument used to display the Linker's usage.
+
+Prog.mc can then be loaded into memory in Logisim, or be run from the emulator.
+
+
++----------+
+| Compiler |
++----------+
+
+To compile a file, eg Prog.rmg, run the following from the command line in the folder where 'SAL-16x-C' was installed:
+
+   python3 ./Tools/Compiler/Compiler.py [-h] [-m MEM] [-p PRINT_OPT] ./rmg/Prog.rmg ./asm/Prog.asm
+
+where the following are optional arguments:
+   '-h' is used to display the Compiler's usage.
+   '-m MEM' is used to set the target memory for the code: MEM = ROM | RAM (default).
+   '-p PRINT_OPT' is used to print the token and/or node lists for debugging: PRINT_OPT = NONE (default) | TOKENS | NODES | BOTH.
+
+The resulting '.asm' file will then have to be assembled before running on 'SAL-16x-C'.
+
+
+Further compiler info is at:
+
+   ./Docs/Compiler Guide.pdf
+
+
++----------+
+| Emulator |
++----------+
+
+To run Prog.mc on the emulator:
+
+   python3 ./Tools/Emulator/Emulator.py [-h] ./mc/Prog.mc ./mc/TimmiOS.mc
+
+Where TimmiOS.mc is the operating system code that sits in ROM, with Prog.mc being located in RAM,
+and '-h' is an optional argument used to display the Emulators's usage.
+
+
+A guide for the emulator is at:
+
+   ./Docs/Emulator User Guide.pdf
+
+
+Further TimmiOS info is at:
+
+   ./Docs/TimmiOS Guide.pdf
+
+
++------+
+| Java |
++------+
+
+For details on how to build 'SAL16Chips.jar' see 'Notes.txt' in the 'Java" folder. I built the jar using the 'IntelliJ IDEA Community Edition' Java IDE:
+
+   https://www.jetbrains.com/idea/download
+
+Java Version 17 (or higher) is required in order to use the 'SAL-16 Chips' Java Library.
+ 
+
++---------+
+| Verilog |
++---------+
+
+The Verilog code has been tested on the 'Basys 3 FPGA':
+
+   https://digilent.com/reference/programmable-logic/basys-3/start
+
+For details on how to run the Verilog version of 'SAL-16' see 'Notes.txt' in the 'Verilog' folder.
+
+
++----------+
+| Road Map |
++----------+
+
+SAL-16x-C:
+----------
+Interrupts: Requires a revamp as some interrupts are missed & 'SAL-16' occasionally hangs
+
+Detect if there's a 'heap meets stack' error
+
+Compiler: Allow inline assembly code
+
+SAL-16I & SAL-16V: New ALU (signed comparisons & floating point comparisons)
+
+Update 'Compiler Doc':
+   Note that can't do: "int rowsA = A[0];"
+   Have a 'Vectors/Matrices' section
+
+Add a 'Misc Features' Doc detailing:
+   Inputs/Outputs
+   Halt command
+   Graphics background usage
+   Error Codes
+
+
+SAL-16x-D:
+----------
+Pipelining ... ??
+

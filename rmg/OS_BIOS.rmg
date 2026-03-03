@@ -1,0 +1,469 @@
+
+/*
+ *  Code generation for TimmiOS BIOS Routines:
+ *
+ *    int_dig_to_flt
+ *    os_read_float
+ *    print_flt_dig
+ *    os_print_float
+ *  
+ *  NB: Remember to ensure that all registers are 'PUSH'ed & 'POP'ed 
+ *      before & after adding the auto-generated code to the library assembly
+ *      code so that no registers are 'lost' after the routine has run.
+ *      Only PUSH/POP R0 if there is no result returned.
+ */
+
+// Temporarily comment out 'os_read_float' & 'os_print_float' from BIOS.lib
+#include "./rmg/includes/BIOS.lib"
+
+// Convert an 'int' digit to a 'float'
+float int_dig_to_flt(int val)
+{
+   if (val == 9) {
+      return 9.0;
+   }
+   else { if (val == 8) {
+      return 8.0;
+   }
+   else { if (val == 7) {
+      return 7.0;
+   }
+   else { if (val == 6) {
+      return 6.0;
+   }
+   else { if (val == 5) {
+      return 5.0;
+   }
+   else { if (val == 4) {
+      return 4.0;
+   }
+   else { if (val == 3) {
+      return 3.0;
+   }
+   else { if (val == 2) {
+      return 2.0;
+   }
+   else { if (val == 1) {
+      return 1.0;
+   }
+   else {
+      return 0.0;
+   }}}}}}}}}
+}
+
+/*
+And a more compact assembly code version for sticking in 'BIOS.asm':
+
+int_dig_to_flt:
+   push r1              ; Save used register
+   ldi r1,9             ; Is val = 9 ?
+   cmp r0,r1
+   jne idtf_test_8
+   ldi r0,9.0           ; Return 9.0
+   jmp idtf_done
+idtf_test_8:
+   dec r1               ; Is val = 8 ?
+   cmp r0,r1
+   jne idtf_test_7
+   ldi r0,8.0           ; Return 8.0
+   jmp idtf_done
+idtf_test_7:
+   dec r1               ; Is val = 7 ?
+   cmp r0,r1
+   jne idtf_test_6
+   ldi r0,7.0           ; Return 7.0
+   jmp idtf_done
+idtf_test_6:
+   dec r1               ; Is val = 6 ?
+   cmp r0,r1
+   jne idtf_test_5
+   ldi r0,6.0           ; Return 6.0
+   jmp idtf_done
+idtf_test_5:
+   dec r1               ; Is val = 5 ?
+   cmp r0,r1
+   jne idtf_test_4
+   ldi r0,5.0           ; Return 5.0
+   jmp idtf_done
+idtf_test_4:
+   dec r1               ; Is val = 4 ?
+   cmp r0,r1
+   jne idtf_test_3
+   ldi r0,4.0           ; Return 4.0
+   jmp idtf_done
+idtf_test_3:
+   dec r1               ; Is val = 3 ?
+   cmp r0,r1
+   jne idtf_test_2
+   ldi r0,3.0           ; Return 3.0
+   jmp idtf_done
+idtf_test_2:
+   dec r1               ; Is val = 2 ?
+   cmp r0,r1
+   jne idtf_test_1
+   ldi r0,2.0           ; Return 2.0
+   jmp idtf_done
+idtf_test_1:
+   dec r1               ; Is val = 1 ?
+   cmp r0,r1
+   jne idtf_zero
+   ldi r0,1.0           ; Return 1.0
+   jmp idtf_done
+idtf_zero:
+   clr r0               ; Return 0.0
+idtf_done:
+   pop r1               ; Restore register
+   ret
+*/
+
+// Read a 'float' number from the keyboard
+float os_read_float()
+{
+   char c;
+   int dig, pow, i;
+   float n, mul;
+   
+   int neg = 0;
+   int got_dp = 0;
+   float num = 0.0;
+   float div = 10.0;
+
+   float NAN;
+   float* pNAN;
+
+   // Perform an int to float conversion for: NAN = 0x7e00
+   pNAN = &NAN;
+   os_mem_set(pNAN, 0x7e00);
+
+   c = os_read_char();
+   // If c is '-' (0x2d) set negate flag & get next digit
+   if (c == 0x2d) {
+      neg = 1;
+      c = os_read_char();
+   }
+
+   // Return NaN if c isn't a digit - Outwith '0' (0x30) to '9' (0x39)
+   if ((c < 0x30) || (c > 0x39)) {
+      return NAN;
+   }
+
+   // Keep getting digits until 'Enter' (0x0a) or 'e' (0x65) pressed
+   while ((c != 0x0a) && (c != 0x65)) {
+      // If c is '.' (0x2e) note decimal point enetered & get next digit
+      if (c == 0x2e) {
+         got_dp = 1;
+         c = os_read_char();
+         continue;
+      }
+
+      // Return NaN 0x7e00) if c isn't a digit - Outwith '0' (0x30) to '9' (0x39)
+      if ((c < 0x30) || (c > 0x39)) {
+         return NAN;
+      }
+
+      // Update num with the last digit
+      dig = c - 0x30;
+      n = int_dig_to_flt(dig);
+      if (got_dp == 0) {
+         num *= 10.0;
+      }
+      else {
+         n /= div;
+         div *= 10.0;
+      }
+      num += n;
+
+      c = os_read_char();
+   }
+
+   // Negate num if required
+   if (neg == 1) {
+      num *= (-1.0);
+   }
+
+   // if c is 'Enter' (0x0a) there's no exponent so just return
+   if (c == 0x0a) {
+      return num;
+   }
+
+   // Get the exponent
+   neg = 0;
+   c = os_read_char();
+   // If c is '-' (0x2d) set negate flag & get next digit
+   if (c == 0x2d) {
+      neg = 1;
+      c = os_read_char();
+   }
+
+   // Return NaN (0x7e00) if c isn't a digit - Outwith '0' (0x30) to '9' (0x39)
+   if ((c < 0x30) || (c > 0x39)) {
+      return NAN;
+   }
+
+   // Adjust num by the exponent
+   pow = c - 0x30;
+   if (neg == 1) {
+      mul = 0.1;
+   }
+   else {
+      mul = 10.0;
+   }
+   for (i = 0; i < pow; i=i+1) {
+      num *= mul;
+   }
+
+   c = os_read_char();
+   // Return NaN (0x7e00) if c isn't 'Enter' (0x0a)
+   if (c != 0x0a) {
+      return NAN;
+   }
+
+   return num;
+}
+
+// Print a 'float' digit
+float print_flt_dig(float val)
+{
+   if (val >= 9.0) {
+      os_print_char(0x39);  // '9'
+      return 90.0;
+   }
+   else { if (val >= 8.0) {
+      os_print_char(0x38);  // '8'
+      return 80.0;
+   }
+   else { if (val >= 7.0) {
+      os_print_char(0x37);  // '7'
+      return 70.0;
+   }
+   else { if (val >= 6.0) {
+      os_print_char(0x36);  // '6'
+      return 60.0;
+   }
+   else { if (val >= 5.0) {
+      os_print_char(0x35);  // '5'
+      return 50.0;
+   }
+   else { if (val >= 4.0) {
+      os_print_char(0x34);  // '4'
+      return 40.0;
+   }
+   else { if (val >= 3.0) {
+      os_print_char(0x33);  // '3'
+      return 30.0;
+   }
+   else { if (val >= 2.0) {
+      os_print_char(0x32);  // '2'
+      return 20.0;
+   }
+   else { if (val >= 1.0) {
+      os_print_char(0x31);  // '1'
+      return 10.0;
+   }
+   else {
+      os_print_char(0x30);  // '0'
+      return 0.0;
+   }}}}}}}}}
+}
+
+/*
+And a more compact assembly code version for sticking in 'BIOS.asm':
+
+print_flt_dig:
+   push lr              ; Save used registers
+   push r1
+   ldi r1,9.0           ; Is val >= 9.0 ?
+   cmp r0,r1
+   jlt pfd_test_8
+   ldi r0,0x39
+   call os_print_char   ; Display '9'
+   ldi r0,90.0          ; Return 90.0
+   jmp pfd_done
+pfd_test_8:
+   ldi r1,8.0           ; Is val >= 8.0 ?
+   cmp r0,r1
+   jlt pfd_test_7
+   ldi r0,0x38
+   call os_print_char   ; Display '8'
+   ldi r0,80.0          ; Return 80.0
+   jmp pfd_done
+pfd_test_7:
+   ldi r1,7.0           ; Is val >= 7.0 ?
+   cmp r0,r1
+   jlt pfd_test_6
+   ldi r0,0x37
+   call os_print_char   ; Display '7'
+   ldi r0,70.0          ; Return 70.0
+   jmp pfd_done
+pfd_test_6:
+   ldi r1,6.0           ; Is val >= 6.0 ?
+   cmp r0,r1
+   jlt pfd_test_5
+   ldi r0,0x36
+   call os_print_char   ; Display '6'
+   ldi r0,60.0          ; Return 60.0
+   jmp pfd_done
+pfd_test_5:
+   ldi r1,5.0           ; Is val >= 5.0 ?
+   cmp r0,r1
+   jlt pfd_test_4
+   ldi r0,0x35
+   call os_print_char   ; Display '5'
+   ldi r0,50.0          ; Return 50.0
+   jmp pfd_done
+pfd_test_4:
+   ldi r1,4.0           ; Is val >= 4.0 ?
+   cmp r0,r1
+   jlt pfd_test_3
+   ldi r0,0x34
+   call os_print_char   ; Display '4'
+   ldi r0,40.0          ; Return 40.0
+   jmp pfd_done
+pfd_test_3:
+   ldi r1,3.0           ; Is val >= 3.0 ?
+   cmp r0,r1
+   jlt pfd_test_2
+   ldi r0,0x33
+   call os_print_char   ; Display '3'
+   ldi r0,30.0          ; Return 30.0
+   jmp pfd_done
+pfd_test_2:
+   ldi r1,2.0           ; Is val >= 2.0 ?
+   cmp r0,r1
+   jlt pfd_test_1
+   ldi r0,0x32
+   call os_print_char   ; Display '2'
+   ldi r0,20.0          ; Return 20.0
+   jmp pfd_done
+pfd_test_1:
+   ldi r1,1.0           ; Is val >= 1.0 ?
+   cmp r0,r1
+   jlt pfd_zero
+   ldi r0,0x31
+   call os_print_char   ; Display '1'
+   ldi r0,10.0          ; Return 10.0
+   jmp pfd_done
+pfd_zero:
+   ldi r0,0x30
+   call os_print_char   ; Display '0'
+   clr r0               ; Return 0.0
+pfd_done:
+   pop r1               ; Restore registers
+   pop lr
+   ret
+*/
+
+// Print a 'float' number on the display
+void os_print_float(float val)
+{
+   int len, dp_pos, i;
+   float j;
+
+   int exp = 0;
+   float val_cpy = val;
+
+   // Deal with NaN (0x7e00 & 0xfe00)
+   if ((val == 0x7e00) || (val == 0xfe00)) {
+      os_print_char(0x4e);  // 'N'
+      os_print_char(0x61);  // 'a'
+      os_print_char(0x4e);  // 'N'
+      return;
+   }
+
+   // Deal with infinities (0x7c00 & 0xfc00)
+   if ((val == 0x7c00) || (val == 0xfc00)) {
+      if (val == 0x7c00) {
+         os_print_char(0x2b);  // '+'
+      }
+      else {
+         os_print_char(0x2d);  // '-'
+      }
+      os_print_char(0x49);     // 'I'
+      os_print_char(0x6e);     // 'n'
+      os_print_char(0x66);     // 'f'
+      return;
+   }
+
+   // Deal with zero (0x0000 & 0x8000)
+   if ((val == 0x0000) || (val == 0x8000)) {
+      os_print_char(0x30);  // '0'
+      os_print_char(0x2e);  // '.'
+      os_print_char(0x30);  // '0'
+      return;
+   }
+
+   // Deal with negatives
+   if (val < 0.0) {
+      os_print_char(0x2d);  // '-'
+      val *= (-1.0);
+   }
+
+   // Get the value & exponent
+   while (val < 1.0) {
+      exp -= 1;
+      val *= 10.0;
+   }
+
+   while (val >= 10.0) {
+      exp += 1;
+      val /= 10.0;
+   }
+
+   // Display the 'float'
+   if ((exp < (-3)) || (exp > 3)) {
+      // For |exp| > 3 display as "[-]x.xxxe[-]y", eg: -1.234e4, 1.234e-5
+      j = print_flt_dig(val);
+      os_print_char(0x2e);  // '.'
+
+      for (i = 0; i < 3; i=i+1) {  // 3 dp
+         val = (10.0 * val) - j;
+         j = print_flt_dig(val);
+      }
+
+      // Display the exponent if it's non-zero
+      if (exp != 0) {
+         os_print_char(0x65);  // 'e'
+         os_print_int(exp);
+      }
+   } 
+   else {
+      if (exp >= 0) {
+         // For exp = 0 display as "[-]x.xxx", eg: 1.234, -9.876
+         // For exp >= 1 display as "[-](x).xx", eg: 1234.56, -12.34
+         // len = num of digits plus the dp
+         if (exp == 0) {
+            len = 5;
+            dp_pos = 1;
+         }
+         else {
+            len = exp + 4;
+            dp_pos = len - 3;
+         }
+         for (i = 0; i < len; i=i+1) {
+            if (i == (dp_pos)) {
+               os_print_char(0x2e);  // '.'
+               continue;
+            }
+            j = print_flt_dig(val);
+            val = (10.0 * val) - j;
+         }
+      }
+      else {
+         // For exp < 0 display as "[-]0.(0)xxxx", eg: -0.1234, 0.001234
+         os_print_char(0x30);  // '0'
+         os_print_char(0x2e);  // '.'
+
+         // Print "leading 0's"
+         for (i = (-1); i > exp; i=i-1) {
+            os_print_char(0x30);  // '0'
+         }
+
+         // Print 4 digits
+         for (i = 0; i < 4; i=i+1) {
+            j = print_flt_dig(val);
+            val = (10.0 * val) - j;
+         }
+      }
+   }
+}
+

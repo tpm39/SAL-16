@@ -1,0 +1,116 @@
+
+/*
+ *  A wee test for declaring & using variables
+ *
+ *  After the tests the globals should be:
+ *     a = 0x1111
+ *     b = 0x5555
+ *     c = 0x0008
+ *     d = 0x0002
+ *     e = 0x0003
+ *     f = 0x0001
+ *     g = 0x0008
+ *     h = 0x0005
+ *     i = 0x1111
+ *     j = 0x0000
+ */
+
+// Globals
+int a, b, c, d, e, f, g, h, i, j;
+
+void main()
+{
+   int x, y;
+   float s, t;
+
+   // 'if' tests
+   x = 12;
+   y = 15;
+
+   if ((x+2) == (y-1)) {
+      a = 0x1111;
+   }
+   else {
+      a = 0b0101010101010101;
+   }
+   
+   x++;
+
+   if ((x+2) == (y-1)) {
+      b = 0x1111;
+   }
+   else {
+      b = 0b0101010101010101;
+   }
+
+   s = -10.0;
+   t = 10.0;
+
+   if (s < t) {
+      i = 0x1111;
+   }
+   else {
+      i = 0x0000;
+   }
+
+   t = -20.0;
+
+   if (s < t) {
+      j = 0x1111;
+   }
+   else {
+      j = 0x0000;
+   }
+
+   // 'while' tests
+   x = 0;
+
+   while (x < 10) {
+      x++;
+      if ((x == 4) || (x == 6)) {
+         d += 1;
+         continue;
+      }
+      c++;
+   }
+
+   x = 0;
+
+   while (1) {
+      x++;
+      if (x == 5) {
+         break;
+      }
+      else {
+         if ((x == 4) || (x == 6)) {
+            f += 1;
+            continue;
+         }
+      }
+      e++;
+   }
+
+   // 'for' tests
+   for (x = 0; x < 20; x = x+2)
+   {
+      if ((x == 8) || (x == 12)) {
+         continue;
+      }
+
+      g += 1;
+   }
+
+   for (x = 0; x < 20; x = x+2)
+   {
+      if ((x == 8) || (x == 12)) {
+         continue;
+      }
+
+      h += 1;
+
+      if (x == 10) {
+         break;
+      }
+   }
+}
+

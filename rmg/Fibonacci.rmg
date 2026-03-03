@@ -1,0 +1,49 @@
+
+/*
+ *  The Fibonacci Series.
+ *
+ *  Store the 1st 25 Fibonacci numbers in memory,
+ *  starting at address 0x9000.
+ *
+ *  The 1st 25 Fibonacci numbers are:
+ *
+ *  0x0000  0x0001  0x0001  0x0002  0x0003
+ *  0x0005  0x0008  0x000d  0x0015  0x0022
+ *  0x0037  0x0059  0x0090  0x00e9  0x0179
+ *  0x0262  0x03db  0x063d  0x0a18  0x1055
+ *  0x1a6d  0x2ac2  0x452f  0x6ff1  0xb520
+ */
+
+#include "./rmg/includes/BIOS.lib"
+
+void main()
+{
+   int a1, a2, n1, n2, n, i;
+   
+   // Start address
+   int addr = 0x9000;
+
+   // Store the 1st 2 numbers
+   i = 0;
+   os_mem_set(addr, i);
+   addr++;
+
+   i = 1;
+   os_mem_set(addr, i);
+   addr++;
+
+   // Calculate & store the next 23 numbers
+   for (i = 2; i < 25; i = i+1) {
+      // Fib(n) = Fib(n-1) + Fib(n-2)
+      a1 = addr - 1;
+      n1 = os_mem_read(a1);
+
+      a2 = addr - 2;
+      n2 = os_mem_read(a2);
+
+      n = n1 + n2;
+      os_mem_set(addr, n);
+      addr++;
+   }
+}
+

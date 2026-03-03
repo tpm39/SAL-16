@@ -1,0 +1,32 @@
+
+; Graphics Library Functions
+
+.equ gr_pixel       0x3000
+.equ gr_line        0x31a0
+.equ gr_rect        0x33f0
+.equ gr_rect_fill   0x3450
+.equ gr_circle      0x34c0
+.equ gr_circle_fill 0x37d0
+.equ gr_fp_pixel    0x3a40
+
+
+// Graphics Library Constants
+
+int GR_RED       = 0xf800;
+int GR_BLUE      = 0x001f;
+int GR_GREEN     = 0x07e0;
+int GR_DK_GREEN  = 0x0560;
+int GR_BLACK     = 0x0000;
+int GR_WHITE     = 0xffff;
+int GR_BROWN     = 0x9260;
+int GR_LT_BROWN  = 0xdd0d;
+int GR_GOLD      = 0xfea0;
+int GR_SILVER    = 0xbdf7;
+int GR_ORANGE    = 0xfcc0;
+int GR_TURQUOISE = 0x273a;
+int GR_PURPLE    = 0xa01f;
+int GR_PINK      = 0xebda;
+int GR_FUCHSIA   = 0xf81f;
+int GR_CYAN      = 0x07ff;
+int GR_BKGRD     = 0xffd7;
+

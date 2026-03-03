@@ -1,0 +1,51 @@
+
+/*
+ *  A wee 'char' & 'for loop' test
+ *
+ *  On completion the display shows:
+ *  
+ *  
+ *     A great Swedish pop group:
+ * 
+ *                ABBA
+ * 
+ */
+
+#include "./rmg/includes/BIOS.lib"
+
+char intro[] = "\n\n   A great Swedish pop group:\n\n";
+char group[33] = "                                ";
+
+void main()
+{
+   char c = 'A';
+   char* ptr;
+   int i;
+
+   // group = "AB"
+   for (i = 14; i < 16; i = i+1) {
+      group[i] = c;
+      c++;
+   }
+   
+   // group = "ABBA"
+   for (; i < 18; i = i+1) {
+      c -= 1;
+      group[i] = c;
+   }
+   
+   // group = "ABBA\n\n"
+   for (; i < 20; i = i+1) {
+      group[i] = BIOS_LF;
+   }
+
+   group[i] = BIOS_NULL;
+
+   // Display 'intro' & 'group'
+   ptr = &intro;
+   os_print_str(ptr);
+
+   ptr = &group;
+   os_print_str(ptr);
+}
+
