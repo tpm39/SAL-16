@@ -1,0 +1,16 @@
+
+To produce a '*.dat' file for the screen:
+
+1) Get a 128x128 screenshot (which gives a 256x256 '*.png' file) NB: This is what I have to do on my 'MacBook Air' laptop ...
+
+2) Convert from '*.png' to '*.rgb' using:
+https://www.freefileconvert.com/image-converter
+
+3) Convert from RGB888 to RGB565 using:
+RGB888to565.py
+
+4) When loading into Graphics RAM use:
+Binary -> big-endian
+
+5) Save Graphics RAM as a '*.dat' file
+

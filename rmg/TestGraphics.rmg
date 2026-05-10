@@ -1,0 +1,31 @@
+
+/*
+ *  Test the Graphics Library stuff
+ */
+
+#include "./rmg/includes/Graphics.lib"
+
+void main()
+{
+   // Plot a red pixel at (127,127)
+   gr_pixel(127, 127, GR_RED);
+
+   // Draw a blue line from (50,50) to (55,55)
+   gr_line(50, 50, 55, 55, GR_BLUE);
+
+   // Draw a brown rectangle with corners (55,55) & (60,60)
+   gr_rect(55, 55, 60, 60, GR_BROWN);
+
+   // Draw a cyan filled rectangle with corners (60,60) & (65,65)
+   gr_rect_fill(60, 60, 65, 65, GR_CYAN);
+
+   // Draw a pink circle with centre (190,60) & radius 5
+   gr_circle(190, 60, 5, GR_PINK);
+
+   // Draw a green filled circle with centre (190,190) & radius 5
+   gr_circle_fill(190, 190, 5, GR_GREEN);
+
+   // Plot a black pixel at (-60,-60) (On the 'floating point grid')
+   gr_fp_pixel(-60.0, -60.0, GR_BLACK);
+}
+

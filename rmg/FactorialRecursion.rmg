@@ -1,0 +1,48 @@
+
+/*
+ *  Calculate the Factorial of a number using
+ *  recursive calls to perform the calculation
+ */
+
+#include "./rmg/includes/BIOS.lib"
+
+char entX[] = "X: ";
+char factX[] = "\n\nX! = ";
+
+// Factorial: c = num!
+int Fact(int num)
+{
+   int c, n;
+
+   if ((num == 0) || (num == 1)) {
+      return 1;
+   }
+   else {
+      n = num - 1;
+      c = Fact(n);
+      c *= num;
+      return c;
+   }
+}
+
+void main()
+{
+   int num, res;
+   char* ptr;
+
+   // Get the number
+   ptr = &entX;
+   os_print_str(ptr);
+   num = os_read_int();
+
+   // Calculate & display the factorial
+   res = Fact(num);
+
+   ptr = &factX;
+   os_print_str(ptr);
+   os_print_int(res);
+
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+}
+

@@ -1,0 +1,11 @@
+
+; Strings Library Functions
+
+.equ str_len    0x4000
+.equ str_cat    0x4030
+.equ str_cpy    0x4060
+.equ str_cmp    0x4090
+.equ str_substr 0x40c0
+.equ str_lower  0x4100
+.equ str_upper  0x4140
+

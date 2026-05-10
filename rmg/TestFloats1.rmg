@@ -1,0 +1,30 @@
+
+/*
+ *  Test Floating Point variable initialisation
+ */
+
+#include "./rmg/includes/Maths.lib"
+
+float a = 3.141593;                                         // 0x4248
+float b = MATH_PI;                                          // 0x4248
+float c = 2.0 * 3.0;                                        // 0x4600
+float d = (MATH_PI/5.0) / MATH_DEG_RAD;                     // 0x507f
+float e = 2.0 * b;                                          // 0x4648
+float f = e - 6.0;                                          // 0x3480
+float g;
+
+void main()
+{
+   float h = 3.141593;                                      // 0x4248
+   float i = MATH_PI;                                       // 0x4248
+   float j = 2.0 * 3.0;                                     // 0x4600
+   float k = (MATH_PI/5.0) / MATH_DEG_RAD;                  // 0x507f
+   float l = 2.0 * i;                                       // 0x4648
+   float m = l - 6.0;                                       // 0x3480
+   float n;
+
+   g = a + (b - (c * (d / (e + (f - (5.26 * MATH_E))))));   // 0x5045
+
+   n = ((((((h + i) - j) * k) / l) + m) - 5.26) * MATH_E;   // 0xc895
+}
+

@@ -1,0 +1,37 @@
+
+/*
+ *  Draw two Quadratics & a Cubic on the Graphics Screen
+*/
+
+#include "./rmg/includes/Graphics.lib"
+
+void main()
+{
+   float x, y;
+   int i;
+
+   // Draw the X & Y Axes
+   gr_line(0, 127, 255, 127, GR_LT_BROWN);
+   gr_line(127, 0, 127, 255, GR_LT_BROWN);
+
+   x = -127.0;
+   for (i = 0; i < 256; i = i+1) {
+      
+      // Plot quadratic pt: y = x^2 / 127
+      y = (x * x) / 127.0;
+      gr_fp_pixel(x, y, GR_RED);
+
+      // Plot cubic pt: y = x^3 / 127
+      y *= x;
+      gr_fp_pixel(x, y, GR_BLUE);
+
+      // Plot quadratic pt: y = ((x+50)^2 / 127) - 75
+      y = x + 50.0;
+      y = (y * y) / 127.0;
+      y -= 75.0;
+      gr_fp_pixel(x, y, GR_PINK);
+
+      x += 1.0;
+   }
+}
+

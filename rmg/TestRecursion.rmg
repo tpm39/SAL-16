@@ -1,0 +1,30 @@
+
+/*  
+ *  A wee recursion test that adds n to x,
+ *  and stores the result in res.
+ */
+
+int res;
+
+int Add_n_1s(int x, int n)
+{
+   int c;
+
+   if (n == 0) {
+      return x;
+   }
+   else {
+      n = n - 1;
+      c = Add_n_1s(x, n);
+      return (1 + c);
+   }
+}
+
+void main()
+{
+   int x = 10;
+   int n = 30;
+
+   res = Add_n_1s(x, n);   // res = 40
+}
+

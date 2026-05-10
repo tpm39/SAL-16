@@ -1,0 +1,52 @@
+
+/*
+ *  Calculate the GCD of two numbers
+ */
+
+#include "./rmg/includes/BIOS.lib"
+
+char entX[] = "X: ";
+char entY[] = "Y: ";
+char gcdXY[] = "\n\nGCD = ";
+
+// Compute the GCD of x and y
+int gcd(int x, int y)
+{
+   while (x != y) {
+      if (x > y) {
+         x = x - y;
+      }
+      else {
+         y = y - x;
+      }
+   }
+
+   return x;
+}
+
+void main()
+{
+   int x, y, res;
+   char* ptr;
+
+   // Get the numbers
+   ptr = &entX;
+   os_print_str(ptr);
+   x = os_read_int();
+
+   os_print_char(BIOS_LF);
+   ptr = &entY;
+   os_print_str(ptr);
+   y = os_read_int();
+
+   // Calculate & display the GCD
+   res = gcd(x,y);
+
+   ptr = &gcdXY;
+   os_print_str(ptr);
+   os_print_int(res);
+
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+}
+

@@ -1,0 +1,30 @@
+
+/*
+ *  Construct Sin/Cos/Tan 'Trig Tables'
+ */
+
+#include "./rmg/includes/Maths.lib"
+
+int MAX_ANG = 90;
+int ANG_INC_I = 5;
+int NUM_ANGS = (MAX_ANG/ANG_INC_I) + 1;
+float ANG_INC_F = 5.0;
+
+float sin[NUM_ANGS];
+float cos[NUM_ANGS];
+float tan[NUM_ANGS];
+
+void main()
+{
+   float ang = 0.0;
+   int i;
+
+   // Update sin/cos/tan tables for each ang
+   for(i=0; i<NUM_ANGS; i=i+1) {
+      sin[i] = fmath_sin(ang);
+      cos[i] = fmath_cos(ang);
+      tan[i] = fmath_tan(ang);
+      ang += ANG_INC_F;
+   }
+}
+

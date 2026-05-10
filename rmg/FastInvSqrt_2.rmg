@@ -1,0 +1,113 @@
+
+/*
+ *  Division & 'Square Rooting' using the 'Fast Inverse Square Root' algorithm
+ *
+ *  See: https://en.m.wikipedia.org/wiki/Fast_inverse_square_root
+ */
+
+#include "./rmg/includes/BIOS.lib"
+#include "./rmg/includes/Maths.lib"
+
+int MAGIC_NUMBER = 0x59e0;
+
+int ADDR_TMP = 0xc000 - 1;  // Mem addr just before the heap
+
+int TRUE  = 1;
+int FALSE = 0;
+
+float ttt;
+
+// FISR Algorithm - Return 1/sqrt(*x)
+float fisr(float* x)
+{
+   float y, x2, i_flt;
+   int i;
+
+   i_flt = *x;
+
+   // If *x is negative return NAN
+   if (i_flt < 0.0) {
+      os_mem_set(ADDR_TMP, MATH_NAN);
+      y = os_mem_read(ADDR_TMP);
+      return y;
+   }
+
+   // 'WTF' Section
+
+   // Type casting workaround for:
+   //   i = (int)*x;
+   os_mem_set(ADDR_TMP, i_flt);
+   i = os_mem_read(ADDR_TMP);
+   i = MAGIC_NUMBER - (i >> 1);
+
+   // Type casting workaround for:
+   //   float* ptr;
+   //   ptr = (float*)&i;
+   //   y = *ptr;
+   os_mem_set(ADDR_TMP, i);
+   y = os_mem_read(ADDR_TMP);
+
+   // Newton-Raphson Section
+   x2 = *x;
+   x2 *= 0.5;
+   y = y * (1.5 - ((x2 * y) * y));
+   y = y * (1.5 - ((x2 * y) * y));
+
+   return y;
+}
+
+// Division - Return: x/y
+float div(float x, float y)
+{
+   float y_fisr, y_pos, res;
+   float* ptr;
+
+   // Deal with a negative y
+   int neg = FALSE;
+   if (y < 0.0) {
+      neg = TRUE;
+      y = (-1.0) * y;
+   }
+
+   // y_fisr = 1/sqrt(y)
+   ptr = &y;
+   y_fisr = fisr(ptr);
+
+   // Return: x * 1/sqrt(y) * 1/sqrt(y) - taking care of a negative y
+   res = (x * y_fisr) * y_fisr;
+   if (neg == TRUE) {
+      res = (-1.0) * res;
+   }
+   return res;
+}
+
+// Square Root - Return sqrt(x)
+float sqrt(float x)
+{
+   float x_fisr, res;
+   float* ptr;
+
+   // x_fisr = 1/sqrt(x)
+   ptr = &x;
+   x_fisr = fisr(ptr);
+
+   // Return: x * 1/sqrt(x)
+   res = x * x_fisr;
+   return res;
+}
+
+void main()
+{
+   float x, y, z;
+   float* ptr;
+
+   x = os_get_in(BIOS_IN1);      // Get x
+   y = os_get_in(BIOS_IN2);      // Get y
+ 
+   z = div(x, y);                // Display x/y
+   os_disp_out(BIOS_OUT1, z);
+
+   z = sqrt(x);                  // Display sqrt(x)
+   os_disp_out(BIOS_OUT2, z);
+}
+

@@ -1,0 +1,397 @@
+
+/*
+ *  ...
+ *  python3 ./Tools/Linker.py ./mc/NAND_Prog.mc ./mc/NAND_Net.mc ./mc/SigmoidFuncs.mc
+ */
+
+#include "./rmg/includes/BIOS.lib"
+#include "./rmg/includes/Maths.lib"
+#include "./rmg/includes/SigmoidFuncs.lib"
+
+// Node Counts
+int INPUT_NODES  = 2;
+int HIDDEN_NODES = 5;
+int OUTPUT_NODES = 2;
+
+// Array sizes
+int INPUTS_SIZE  = INPUT_NODES + 2;
+int HIDDENS_SIZE = HIDDEN_NODES + 2;
+int OUTPUTS_SIZE = OUTPUT_NODES + 2;
+
+int WIH_SIZE = (INPUT_NODES * HIDDEN_NODES) + 2;
+int WHO_SIZE = (HIDDEN_NODES * OUTPUT_NODES) + 2;
+
+// The Input Layer - The Inputs are (x, y)
+float inputs[] = {INPUT_NODES, 1, 0.0, 0.0};
+
+// Transposed Inputs
+float inputsT[] = {1, INPUT_NODES, 0.0, 0.0};
+
+// All the possible input combinations (x, y)
+float in_00[] = {INPUT_NODES, 1, 0.0, 0.0};
+float in_01[] = {INPUT_NODES, 1, 0.0, 1.0};
+float in_10[] = {INPUT_NODES, 1, 1.0, 0.0};
+float in_11[] = {INPUT_NODES, 1, 1.0, 1.0};
+
+// The Hidden Layer
+float hiddens_in[] = {HIDDEN_NODES, 1, 0.0, 0.0, 0.0, 0.0, 0.0};
+float hiddens_out[] = {HIDDEN_NODES, 1, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+// Transposed Hidden Layer Outputs
+float hiddens_outT[] = {1, HIDDEN_NODES, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+// The Output Layer - The outputs are (z0, z1) - where:
+//   z0 is the 'likelihood' of z being '0'
+//   z1 is the 'likelihood' of z being '1'
+float outputs_in[] = {OUTPUT_NODES, 1, 0.0, 0.0};
+float outputs[] = {OUTPUT_NODES, 1, 0.0, 0.0};
+
+// Threshold for determing z
+float THRESHOLD = 0.8;
+
+// Initial 'random' weight matrices: 'Input -> Hidden' & 'Hidden-> Output'
+float wih[] = {HIDDEN_NODES, INPUT_NODES,
+                0.9, -0.2,
+                0.7,  0.3,
+               -0.5, -0.7,
+                0.1, -0.6,
+               -0.4,  0.2};
+
+float who[] = {OUTPUT_NODES, HIDDEN_NODES,
+               -0.9,  0.2,  0.6, -0.2, 0.1,
+                0.7, -0.4, -0.3,  0.2, 0.6};
+/*
+// Hard-coded final net
+float wih[] = {HIDDEN_NODES, INPUT_NODES,
+                3.79213578, -8.51045568,
+                7.66299405, -3.41941666, 
+                0.40620045, -2.6490232, 
+                3.18404165, -7.3792833, 
+               -8.40486461,  3.80623094};
+
+float who[] = {OUTPUT_NODES, HIDDEN_NODES,
+               -3.62182705,  3.22362353, -1.19626314, -2.59896118, -3.43382837,
+                3.56334152, -3.24647641,  1.32823989,  2.61237492,  3.43381549};
+*/
+// Transposed weight matrices
+float wihT[] = {OUTPUT_NODES, HIDDEN_NODES,
+                0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0};
+
+float whoT[] = {HIDDEN_NODES, INPUT_NODES,
+                0.0, 0.0,
+                0.0, 0.0,
+                0.0, 0.0,
+                0.0, 0.0,
+                0.0, 0.0};
+
+// Weight adjustment matrices
+float who_adj[] = {OUTPUT_NODES, HIDDEN_NODES,
+                   0.0, 0.0, 0.0, 0.0, 0.0,
+                   0.0, 0.0, 0.0, 0.0, 0.0};
+
+float wih_adj[] = {HIDDEN_NODES, INPUT_NODES,
+                   0.0, 0.0,
+                   0.0, 0.0,
+                   0.0, 0.0,
+                   0.0, 0.0,
+                   0.0, 0.0};
+
+// The Training Data - (x, y, Target z0, Target z1)
+int TRAIN_SIZE = 4;
+int DATA_SIZE = INPUT_NODES + OUTPUT_NODES;
+float data_00[] = {DATA_SIZE, 1, 1.0, 2.0, 3.0, 4.0};//0.0, 0.0, 0.01, 0.99};
+float data_01[] = {DATA_SIZE, 1, 0.0, 1.0, 0.01, 0.99};
+float data_10[] = {DATA_SIZE, 1, 1.0, 0.0, 0.01, 0.99};
+float data_11[] = {DATA_SIZE, 1, 1.0, 1.0, 0.99, 0.01};
+
+// Training stuff
+float LEARN_RATE = 0.5;
+int EPOCHS = 1;
+
+float targets[] = {OUTPUT_NODES, 1, 0.0, 0.0};
+
+float hidden_errs[] = {HIDDEN_NODES, 1, 0.0, 0.0, 0.0, 0.0, 0.0};
+float out_errs[] = {OUTPUT_NODES, 1, 0.0, 0.0};
+
+float hiddens_back[] = {HIDDEN_NODES, 1, 0.0, 0.0, 0.0, 0.0, 0.0};
+float outputs_back[] = {OUTPUT_NODES, 1, 0.0, 0.0};
+
+// Misc Strings
+char title1[] = "NAND Neural Network\n";
+char title2[] = "===================\n\n";
+
+char untrained_res[] = "Untrained Results:\n\n";
+char training[] = "\nTraining:\n Please wait an age ...\n\n";
+char train_done[] = "Got a Trained Net !!\n\n";
+char trained_res[] = "Trained Results:\n\n";
+
+char NAND1[] = "NAND(";
+char NAND2[] = ") = ";
+
+char all_done[] = "\nAll Done - Bye Now :)\n\n";
+
+// 'Query' the net - Set the outputs for given inputs
+void query(float* in)
+{
+   float* ptr1, ptr2, ptr3;
+   float x;
+   int i;
+
+   // Inputs -> Hidden Layer calculations
+   ptr1 = &wih;
+   ptr2 = &hiddens_in;
+   fmath_mat_mul(ptr1, in, ptr2);
+
+   // Hidden Layer 'sigmoid adjustment'
+   for (i = 2; i < HIDDENS_SIZE; i = i+1) {
+      x = hiddens_in[i];
+      x = sigmoid(x);
+      hiddens_out[i] = x;
+   }
+
+   // Hidden Layer -> Outputs calculations
+   ptr1 = &who;
+   ptr2 = &hiddens_out;
+   ptr3 = &outputs_in;
+   fmath_mat_mul(ptr1, ptr2, ptr3);
+
+   // Outputs 'sigmoid adjustment'
+   for (i = 2; i < OUTPUTS_SIZE; i = i+1) {
+      x = outputs_in[i];
+      x = sigmoid(x);
+      outputs[i] = x;
+   }
+}
+
+// ....
+void train()
+{
+   int i, j, k;
+   int brk1 = 0xaaaa;
+   float* ptr1, ptr2, ptr3;
+   int brk2 = 0xffff;
+   float aaa;
+   float x, y;
+
+   for (i = 0; i < EPOCHS; i = i+1)
+   {
+      for (j = 0; j < TRAIN_SIZE; j = j+1) {
+         // Setup the Inputs & Targets
+         if (j == 0) {
+            ptr1 = &data_00;
+         } else { if (j == 1) {
+            ptr1 = &data_01;
+         } else { if (j == 2) {
+            ptr1 = &data_10;
+         } else {
+            ptr1 = &data_11;
+         }}}
+         inputs[2] = ptr1[2];
+         inputs[3] = ptr1[3];
+         targets[2] = ptr1[4];
+         targets[3] = ptr1[5];
+         os_exit(-1);
+         // Get the outputs for the current inputs & weights
+         ptr1 = &inputs;
+         query(ptr1);
+
+         // Get the output errors: targets - outputs
+         for (k = 2; k < OUTPUTS_SIZE; k = k+1) {
+            out_errs[k] = targets[k] - outputs[k];
+         }
+
+         // Get the Hidden Layer errors: whoT * output_errors
+         ptr1 = &who;
+         ptr2 = &whoT;
+         fmath_mat_trans(ptr1, ptr2);
+
+         ptr1 = &whoT;
+         ptr2 = &out_errs;
+         ptr3 = &hidden_errs;
+         fmath_mat_mul(ptr1, ptr2, ptr3);
+
+         // Update the weights between the hidden & output layers
+         // Python line: final_in_back = vec_sig_deriv(final_inputs)
+         for (k = 2; k < OUTPUTS_SIZE; k = k+1) {
+            x = out_errs[k];
+            y = outputs_in[k];
+            y = sigmoid_derivative(y);
+            outputs_back[k] = x * y;
+         }
+
+         // Python line: self.who += self.lr * np.dot((output_errors * final_in_back), np.transpose(hidden_outputs))
+         ptr1 = &hiddens_out;
+         ptr2 = &hiddens_outT;
+         fmath_mat_trans(ptr1, ptr2);
+
+         ptr1 = &outputs_back;
+         ptr2 = &hiddens_outT;
+         ptr3 = &who_adj;
+         fmath_mat_mul(ptr1, ptr2, ptr3);
+
+         for (k = 2; k < WHO_SIZE; k = k+1) {
+            x = who_adj[k];
+            x = LEARN_RATE * x;
+            y = who[k];
+            y += x;
+            who[k] = y;
+         }
+
+         // Update the weights between the input & hidden layers
+         // Python line: hidden_in_back = vec_sig_deriv(hidden_inputs)
+         for (k = 2; k < HIDDENS_SIZE; k = k+1) {
+            x = hidden_errs[k];
+            y = hiddens_in[k];
+            y = sigmoid_derivative(y);
+            hiddens_back[k] = x * y;
+         }
+
+         // Python line: self.wih += self.lr * np.dot((hidden_errors * hidden_in_back), np.transpose(inputs))
+         ptr1 = &inputs;
+         ptr2 = &inputsT;
+         fmath_mat_trans(ptr1, ptr2);
+
+         ptr1 = &hiddens_back;
+         ptr2 = &inputsT;
+         ptr3 = &wih_adj;
+         fmath_mat_mul(ptr1, ptr2, ptr3);
+
+         for (k = 2; k < WIH_SIZE; k = k+1) {
+            x = wih_adj[k];
+            x = LEARN_RATE * x;
+            y = wih[k];
+            y += x;
+            wih[k] = y;
+         }
+         os_exit(-1);
+      }
+   }
+}
+
+// Display the inputs and result as:
+//   NAND(x,y) = z
+void disp_test(float* in_xx)
+{
+   char ZERO    = '0';
+   char ONE     = '1';
+   char COMMA   = ',';
+   char QMARK   = '?';
+
+   //float diff, neg_thresh;
+   float z0, z1;
+   char* ptr;
+   int out0, out1;
+
+   // Display the inputs
+   ptr = &NAND1;
+   os_print_str(ptr);
+
+   if (in_xx[2] == 0.0) {
+      os_print_char(ZERO);
+   }
+   else {
+      os_print_char(ONE);
+   }
+
+   os_print_char(COMMA);
+
+   if (in_xx[3] == 0.0) {
+      os_print_char(ZERO);
+   }
+   else {
+      os_print_char(ONE);
+   }
+
+   ptr = &NAND2;
+   os_print_str(ptr);
+
+   // Get & display the result - which is
+   // based on the difference of the output nodes
+   out0 = OUTPUTS_SIZE - 2;
+   out1 = OUTPUTS_SIZE - 1;
+   //diff = outputs[out0] - outputs[out1];
+   //neg_thresh = (-1.0) * THRESHOLD;
+/*
+   if (diff > THRESHOLD) {
+      os_print_char(ZERO);
+   }
+   else { if (diff < neg_thresh) {
+      os_print_char(ONE);
+   }
+   else {
+      os_print_char(QMARK);
+   }}
+*/
+
+   z0 = outputs[out0];
+   z1 = outputs[out1];
+   if (z0 > z1) {
+      os_print_char(ZERO);
+   }
+   else {
+      os_print_char(ONE);
+   }
+
+   os_print_char(BIOS_LF);
+}
+
+// Get & display the results of the net for all input combinations
+void disp_all_tests()
+{
+   float* pIn, pOut;
+   int i;
+
+   pIn = &in_00;
+   query(pIn);
+   disp_test(pIn);
+/*
+   pIn = &in_01;
+   query(pIn);
+   disp_test(pIn);
+
+   pIn = &in_10;
+   query(pIn);
+   disp_test(pIn);
+
+   pIn = &in_11;
+   query(pIn);
+   disp_test(pIn);
+*/
+}
+
+void main()
+{
+   char* ptr;
+
+   // Show title
+   ptr = &title1;
+   os_print_str(ptr);
+   ptr = &title2;
+   os_print_str(ptr);
+
+   // Perform tests on the untrained net
+   ptr = &untrained_res;
+   os_print_str(ptr);
+
+   //disp_all_tests();
+
+   // Train the net
+   ptr = &training;
+   os_print_str(ptr);
+
+   train();
+
+   ptr = &train_done;
+   os_print_str(ptr);
+
+   // Perform tests on the trained net
+   ptr = &trained_res;
+   os_print_str(ptr);
+
+   disp_all_tests();
+
+   ptr = &all_done;
+   os_print_str(ptr);
+}
+

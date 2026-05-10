@@ -1,0 +1,26 @@
+
+/*
+ *  Add Code - To compare with Assembler generated code (asm/Add.asm)
+ *
+ *  This is:
+ *    25 lines of rmg code
+ *    85 lines of assembly code
+ *    116 bytes of machine code
+ */
+
+#include "./rmg/includes/BIOS.lib"
+
+void main()
+{
+   int x, y, z;
+
+   // Get x & y
+   x = os_get_in(BIOS_IN1);
+   y = os_get_in(BIOS_IN2);
+
+   z = x + y;
+
+   // Display result
+   os_disp_out(BIOS_OUT1, z);
+}
+

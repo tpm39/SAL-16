@@ -1,0 +1,192 @@
+
+/*
+ *  Some wee tests of the 'int' Maths Library
+ */
+
+#include "./rmg/includes/BIOS.lib"
+#include "./rmg/includes/Maths.lib"
+
+char fns_res[] = "Funcs Res = ";
+char vec_add[] = "Vec Add = (";
+char dp_res[]  = "Dot Prod = ";
+char mat_add[] = "Mat Add = |";
+char mat_mul[] = "Mat Mul = |";
+char mat_nl[]  = "          |";
+
+// Vectors
+int va[] = {1, 3, 1, 2, 3};  // Including dimension (1 x 3) header
+int vb[] = {1, 3, 4, 5, 6};  // Including dimension (1 x 3) header
+int V_SIZE = 5;
+int vc[V_SIZE];
+
+// Matrices
+int mA[] = {2, 2, 1, 2, 3, 4};  // mA = |1 2|  Including dimension (2 x 2) header
+                                //      |3 4|
+int mB[] = {2, 2, 5, 6, 7, 8};  // mB = |5 6|  Including dimension (2 x 2) header
+                                //      |7 8|
+int M_SIZE = 6;
+int mC[M_SIZE];
+
+// Do a calculation using the non vector/matrix Library functions
+void test_funcs()
+{
+   int x, y, n;
+   char* ptr;
+
+   x = -2;
+   x = imath_abs(x);       // x = 2
+
+   n = 4;
+   x = imath_pow(x, n);    // x = x^n = 16
+
+   x *= 3;                 // x = 48
+
+   y = 11;
+   x = x % y;              // x = 4
+
+   x = imath_fact(x);      // x = 24
+
+   x = imath_sqrt(x);      // x = 4
+
+   y = x;
+   x = -25;
+   x = x / y;              // x = -6
+
+   // Display the result
+   ptr = &fns_res;
+   os_print_str(ptr);
+   os_print_int(x);
+
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+}
+
+// Do a vector addition & a dot product
+void test_vecs()
+{
+   int* pA, pB, pC;
+   char* ptr;
+   int dot_prod, i;
+   char c;
+
+   pA = &va;
+   pB = &vb;
+   pC = &vc;
+
+   // Do a vector addition & display the result
+   imath_vec_add(pA, pB, pC);  // vc = va + vb = (5, 7, 9)
+
+   ptr = &vec_add;
+   os_print_str(ptr);
+
+   // Display the vector elements
+   for (i = 2; i < V_SIZE; i=i+1) {
+      os_print_int(vc[i]);
+      if (i < (V_SIZE-1)) {
+         // Display 'vector separaters'
+         c = ',';
+         os_print_char(c);
+         c = ' ';
+      } 
+      else {
+         // Display 'end of vector'
+         c = ')';
+      }
+      os_print_char(c);
+   }
+
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+
+   // Do a dot product & display the result
+   dot_prod = imath_vec_dot_prod(pA, pB);  // va.vb = 32
+
+   ptr = &dp_res;
+   os_print_str(ptr);
+   os_print_int(dot_prod);
+
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+}
+
+// Display a 'result matrix'
+void disp_res_mat(char* func)
+{
+   int rows, cols;
+   int i, j, pos;
+   char* ptr;
+   char c;
+
+   os_print_str(func);
+
+   rows = mC[0];
+   cols = mC[1];
+
+   // Display the matrix elements
+   for (i = 0; i < rows; i=i+1) {
+      for (j = 0; j < cols; j=j+1) {
+         pos = (i * rows) + j;
+         pos += 2;
+         if (mC[pos] < 10) {
+            // Alignment for elements < 10
+            c = ' ';
+            os_print_char(c);
+         }
+         os_print_int(mC[pos]);
+         if (j == (cols-1)) {
+            // Deal with the end of a row
+            c = '|';
+            os_print_char(c);
+            os_print_char(BIOS_LF);
+            if (i < (rows-1)) {
+               // Move to the next row
+               ptr = &mat_nl;
+               os_print_str(ptr);
+            }
+            else {
+               // The matrix has been displayed
+               os_print_char(BIOS_LF);
+            }
+         }
+         else {
+            // Display a 'matrix separater'
+            c = ' ';
+            os_print_char(c);
+         }
+      }
+   }
+}
+
+// Do a matrix addition & multiplication
+void test_mats()
+{
+   int* pA, pB, pC;
+   char* ptr;
+
+   pA = &mA;
+   pB = &mB;
+   pC = &mC;
+
+   // Do a matrix addition & display the result
+   imath_mat_add(pA, pB, pC);  // mC = mA + mB = | 6  8|
+                               //                |10 12|
+
+   ptr = &mat_add;
+   disp_res_mat(ptr);
+
+   // Do a matrix multiplication & display the result
+   imath_mat_mul(pA, pB, pC);  // mC = mA * mB = |19 22|
+                               //                |43 50|
+
+   ptr = &mat_mul;
+   disp_res_mat(ptr);
+}
+
+void main()
+{
+   // Do all the tests
+   test_funcs();
+   test_vecs();
+   test_mats();
+}
+

@@ -1,0 +1,44 @@
+{
+   // See https://go.microsoft.com/fwlink/?LinkId=733558
+   // for the documentation about the tasks.json format
+   
+   "version": "2.0.0",
+   "tasks": [
+      {
+         "label": "Assemble File",
+         "type": "shell",
+         "command": "./Assemble.sh ${fileBasenameNoExtension}",
+         "problemMatcher": []
+      },
+      {
+         "label": "Assemble FPGA File",
+         "type": "shell",
+         "command": "python3 ./Tools/Assembler.py ./asm/FPGA/${fileBasename} ./mc/FPGA/${fileBasenameNoExtension}.mc",
+         "problemMatcher": []
+      },
+      {
+         "label": "Make TimmiOS",
+         "type": "shell",
+         "command": "./MakeTimmiOS.sh",
+         "problemMatcher": []
+      },
+      {
+         "label": "Compile File",
+         "type": "shell",
+         "command": "./Compile.sh ${fileBasenameNoExtension}",
+         "problemMatcher": []
+      },
+      {
+         "label": "Emulate File",
+         "type": "shell",
+         "command": "./Emulate.sh ${fileBasenameNoExtension}",
+         "problemMatcher": []
+      },
+      {
+         "label": "Generate uCode",
+         "command": "./Generate_uCode.sh",
+         "problemMatcher": []
+      }
+   ]
+}
+

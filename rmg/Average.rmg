@@ -1,0 +1,53 @@
+
+/*
+ *  Calculate the average of some numbers
+ */
+
+#include "./rmg/includes/BIOS.lib"
+#include "./rmg/includes/Errors.lib"
+
+char num_cnt[] = "How many: ";
+char num[]     = "Num: ";
+char average[] = "\n\nAverage: ";
+char n_zero[]  = "\nNeed at least 1 number ...\n\n";
+
+void main()
+{
+   int n, i, y, av;
+   int x = 0;
+   char* ptr;
+
+   // Get how many numbers to average
+   ptr = &num_cnt;
+   os_print_str(ptr);
+   n = os_read_int();
+   os_print_char(BIOS_LF);
+
+   // Check for at least 1 number
+   if (n <= 0) {
+      ptr = &n_zero;
+      os_print_str(ptr);
+      os_exit(ERR_INV_DATA);
+   }
+
+   // Get each number & add to the running total
+   ptr = &num;
+   i = n;
+   while (i > 0) {
+      os_print_char(BIOS_LF);
+      os_print_str(ptr);
+      y = os_read_int();
+      x += y;
+      i--;
+   }
+
+   // Calculate the average & display
+   av = x/n;
+   ptr = &average;
+   os_print_str(ptr);
+   os_print_int(av);
+
+   os_print_char(BIOS_LF);
+   os_print_char(BIOS_LF);
+}
+

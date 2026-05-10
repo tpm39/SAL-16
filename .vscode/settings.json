@@ -1,0 +1,6 @@
+{
+   "files.associations": {
+      "*.rmg": "c",
+      "*.lib": "c"
+   }
+}

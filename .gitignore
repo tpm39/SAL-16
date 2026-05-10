@@ -1,0 +1,23 @@
+**/.DS_Store
+Docs/Pages/
+Fast Inverse Square Root/
+Graphics/Bresenham/
+Graphics/Images/
+Maths/
+Misc/
+rmg/*.py
+SAL16Chips/.idea/
+SAL16Chips/out/
+SAL16Chips/*.jar
+SAL16Chips/*.txt
+SAL16Chips/*.iml
+Tools/Compiler/__pycache__/
+Tools/Emulator/__pycache__/
+Tools/*.py
+!Tools/Assembler.py
+!Tools/Linker.py
+Verilog/Videos
+Verilog/*.mc
+!Verilog/TimmiOS.mc
+ToDos.txt
+

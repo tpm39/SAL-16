@@ -1,0 +1,33 @@
+
+/*
+ *  Draw a Circle on the Graphics Screen
+*/
+
+#include "./rmg/includes/Graphics.lib"
+#include "./rmg/includes/Maths.lib"
+
+void main()
+{   
+   float MAX_ANG = 360.0;
+   float PTS = 100.0;
+   float ANG_INC = MAX_ANG / PTS;
+
+   float x, y, ang;
+
+   // Draw the X & Y Axes
+   gr_line(0, 127, 255, 127, GR_LT_BROWN);
+   gr_line(127, 0, 127, 255, GR_LT_BROWN);
+
+   // Draw the circle
+   for (ang = 0.0; ang < MAX_ANG; ang=ang+ANG_INC) {
+      // Plot [50*cos(ang), 50*sin(ang)]
+      x = fmath_cos(ang);
+      x *= 50.0;
+
+      y = fmath_sin(ang);
+      y *= 50.0;
+
+      gr_fp_pixel(x, y, GR_DK_GREEN);
+   }
+}
+

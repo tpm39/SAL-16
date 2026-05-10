@@ -1,0 +1,181 @@
+
+/*
+ *  Some wee tests using pointers & arrays
+ */
+ 
+// Globals - These go on the 'heap' (which starts at addr: 0xc000)
+int SIZE_3 = 3;                  // addr: 0xc000
+int SIZE_4 = 4;                  // addr: 0xc001
+int a[SIZE_3] = {2, 4, -7};      // addr: 0xc002
+int b = 9;                       // addr: 0xc005
+int c[4];                        // addr: 0xc006
+int d = 8;                       // addr: 0xc00a
+int e[1];                        // addr: 0xc00b
+int* f;                          // addr: 0xc00c
+float g[SIZE_4] = {1.0, -2.0};   // addr: 0xc00d - g = [0x3c00, 0xc000 ,0x0000, 0x0000] 
+int* h;                          // addr: 0xc011
+int i;                           // addr: 0xc012
+int j[SIZE_4];                   // addr: 0xc013
+int k[SIZE_3];                   // addr: 0xc017
+
+// Double a number
+int double(int x)
+{
+   return (2 * x);
+}
+
+// Double all the elements of an int array
+void double_arr_i(int* a, int size)
+{
+   int i;
+
+   for (i = 0; i < size; i = i+1) {
+      a[i] = 2 * a[i];
+   } 
+}
+
+// Triple all the elements of a float array
+void triple_arr_f(float* a, int size)
+{
+   int i;
+
+   for (i = 0; i < size; i = i+1) {
+      a[i] = 3.0 * a[i];
+   } 
+}
+
+// Copy one array (a) to another (b)
+void copy_arr(int* a, int* b, int size)
+{
+   int i;
+
+   for (i = 0; i < size; i = i+1) {
+      b[i] = a[i];
+   } 
+}
+
+/* 
+ * At the end of Test1:
+ *   a = [0xc00c, 10, -7]
+ *   b = 13
+ *   d = 10
+ *   f = 0xc00a
+ *   h = 0xc012
+ *   i = 0xffeb
+ */
+void Test1()
+{
+   int* t;
+
+   t = &a;     // t = 0xc002
+   t++;        // t = 0xc003
+   *t = 10;    // a[1] = 10
+   b = *t;     // b = 10
+   b += 3;     // b = 13
+   f = &d;     // f = 0xc00a
+   *f = *t;    // d = 10
+   h = &i;     // h = 0xc012
+   *h = &t;    // i = 0xffeb
+   t--;        // t = 0xc002
+   *t = &f;    // a[0] = 0xc00c
+}
+
+/* 
+ * At the end of Test2:
+ *   a = [17, 3, 5]
+ *   c = [12, 19, 5, 3]
+ *   e = [5]
+ *   f = 2
+ *   g = [1.0, -2.0, -1.0, -3.0] = [0x3c00, 0xc000, 0xbc00, 0xc200]
+ */
+void Test2()
+{
+   int i, j, k;
+
+   f = 1;
+   a[f] = 6;               // a = [2, 6, -7]
+   f--;                    // f = 0
+   f += 2;                 // f = 2
+   a[f] = -1;              // a = [2, 6, -1]
+   a[0] = 8;               // a = [8, 6, -1]
+
+   i = 1;
+   j = 0;
+   k = 1;
+   c[k] = a[i] + a[j];     // c = [0, 14, 0, 0]
+
+   e[0] = 5;               // e = [5]
+
+   a[0] = b + d;           // a = [17, 6, -1]
+   a[1] = b - (d - 2);     // a = [17, 3, -1]
+   a[2] = e[0];            // a = [17, 3, 5]
+
+   c[3] = a[1];            // c = [0, 14, 0, 3]
+   c[2] = a[2];            // c = [0, 14, 5, 3]
+   c[1] = c[2] + c[1];     // c = [0, 19, 5, 3]
+   c[0] = a[0] - e[0];     // c = [12, 19, 5, 3]
+
+   g[2] = g[0] + g[1];     // g = [1.0, -2.0, -1.0, 0.0]
+   g[3] = g[1] + g[2];     // g = [1.0, -2.0, -1.0, -3.0]
+}
+
+/* 
+ * At the end of Test3:
+ *   a = [2, 4, -6]
+ *   c = [4, 8, -12, 16]
+ *   d = 4
+ *   g = [3.0, -6.0, 9.0, -12.0] = [0x4200, 0xc600, 0x4880, 0xca00]
+ *   j = [4, 8, -12, 16]
+ */
+void Test3()
+{
+   int t[4] = {1, 2, -3, 4};
+   int* p1, p2;
+   float* p3;
+   int i;
+
+   a[2] = a[2] + 1;                    // a = [2, 4, -6]
+   d = double(a[0]);                   // d = 4
+
+   for (i = 0; i < SIZE_4; i = i+1) {
+      c[i] = double(t[i]);             // c = [2, 4, -6, 8]
+   } 
+
+   p1 = &c;
+   double_arr_i(p1, SIZE_4);           // c = [4, 8, -12, 16]
+
+   p2 = &j;
+   copy_arr(p1, p2, SIZE_4);           // j = [4, 8, -12, 16]
+
+   g[2] = 3.0;
+   g[3] = -4.0;                        // g = [1.0, -2.0, 3.0, -4.0]
+   p3 = &g;
+   triple_arr_f(p3, SIZE_4);           // g = [3.0, -6.0, 9.0, -12.0]
+}
+
+/* 
+ * At the end of Test4:
+ *   a = [2, 8, -7]
+ *   k = [-5, 4, 2]
+ */
+void Test4()
+{
+   int* p1, p2;
+
+   p1 = &a;
+   p2 = &k;
+
+   p2[2] = p1[0];          // k = [0, 0, 2]
+   p2[0] = p1[2] + p2[2];  // k = [-5, 0, 2]
+   p2[1] = 4;              // k = [-5, 4, 2]
+
+   p1++;                   // a = [2, 8, -7]
+   *p1 = 8;
+}
+
+// Run a test
+void main()
+{
+   Test1();
+}
+

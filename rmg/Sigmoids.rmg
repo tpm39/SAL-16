@@ -1,0 +1,37 @@
+
+// Get data for plotting sigmoid(x) & d/dx sigmoid(x)
+
+// NB: Remember to link the SigmoidFuncs Lib:
+//   python3 ./Tools/Linker.py ./mc/Sigmoids_Prog.mc ./mc/Sigmoids.mc ./mc/SigmoidFuncs.mc
+
+#include "./rmg/includes/SigmoidFuncs.lib"
+
+float START = -10.0;
+float END   =  10.0;
+float X_INC = 0.25;
+
+int NUM_PTS = 81; // ((END - START) / X_INC) + 1 : Do maually due to 'Casts' limitations ...
+
+int brk1 = 0xffff;
+
+float sigs[NUM_PTS];
+
+int brk2 = 0xffff;
+
+float sig_derivs[NUM_PTS];
+
+int brk3 = 0xffff;
+
+void main()
+{
+   float x;
+   int i;
+
+   x = START;
+   for (i = 0; i < NUM_PTS; i = i+1) {
+      sigs[i] = sigmoid(x);
+      sig_derivs[i] = sigmoid_derivative(x);
+      x += X_INC;
+   }
+}
+
