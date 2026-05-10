@@ -7,9 +7,11 @@ Please see 'Notes.txt' for an overview as to what's what.
 
 SAL-16 is based on Ross McGowan's 'Design a CPU' & 'Design a FPU' courses, see:
 
-https://www.appliedmathematics.co.uk
-
 https://www.patreon.com/cw/RossMcgowanMaths
 
-His courses are also available on Udemy.
+https://www.appliedmathematics.co.uk
+
+His courses are also available on Udemy:
+
+https://www.udemy.com/user/ross-mcgowan/
 
