@@ -3,13 +3,9 @@
 
 package com.sal16.chips;
 
-import javax.sound.sampled.Port;
-
 import com.cburch.logisim.data.*;
 import com.cburch.logisim.instance.*;
 import com.cburch.logisim.util.GraphicsUtil;
-
-import apple.laf.JRSUIConstants.Direction;
 
 class ALU extends InstanceFactory {
     ALU() {
