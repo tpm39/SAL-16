@@ -5,6 +5,7 @@ Graphics/Bresenham/
 Graphics/Images/
 Maths/
 Misc/
+rmg/*.asm
 rmg/*.py
 SAL16Chips/.idea/
 SAL16Chips/out/
