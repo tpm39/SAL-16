@@ -95,6 +95,10 @@
 .equ BAD_MAT_DIMS 0x0150
 .equ LN_LTE_ZERO  0x0160
 
+; Misc
+.equ TRUE  0xffff
+.equ FALSE 0x0000
+
 .code
 
 ;------------------------------
@@ -3380,18 +3384,16 @@ fmath_cmplx_mul:
    pop fp
    ret
 
-;--------------------------------------------------------
+;---------------------------------------------------
 ; Maths - Exp (float)
 ; 
 ; Location: ROM addr 0x2dd0
 ;
 ; Input:  r0 - n
-; Output: r0 - Exp(n)
+; Output: r0 - Exp(x)
 ;
 ; This uses the Taylor Series - See 'Taylor_Exp.py'
-;
-; NB - Valid results for inputs in range: -2.5 < x < 2.5
-;--------------------------------------------------------
+;---------------------------------------------------
 
 .= 0x2dd0
 
@@ -3404,30 +3406,43 @@ fmath_exp:
    push r2
    push r1
 
-   ldi  r1,1.0       ; r1 = 1.0 (pow)
-   ldi  r2,1.0       ; r2 = 1.0 (fact)
-   ldi  r3,1.0       ; r3 = 1.0 (res)
-   ldi  r4,1.0       ; r4 = 1.0 (f)
+   ldi r1,1.0        ; r1 = 1.0 (res)
+   ldi r2,1.0        ; r2 = 1.0 (term)
+   ldi r3,1.0        ; r3 = 1.0 (f)
+   clr r4            ; r4 = FALSE (neg)
+   ldi lr,1.0        ; lr = 1.0
 
-   ldi fp,7          ; Initialise loop counter
+   cmp r0,r4
+   jge exp_x_pos1
+   ldi r4,TRUE       ; x < 0.0 so set neg TRUE
+   ldi fp,0x7fff
+   and r0,fp,r0      ; negate x
+
+exp_x_pos1:
+   ldi fp,25         ; Initialise loop counter
    ldi idx,1
 
 exp_loop:
    cmp idx,fp        ; Loop ended ?
    jeq exp_done
 
-   fmul r1,r0,r1     ; pow *= x
-   fmul r2,r4,r2     ; fact *= f 
-   fdiv r1,r2,lr     ; res += (pow / fact)
-   fadd r3,lr,r3
-   ldi lr,1.0        ; f += 1.0
-   fadd r4,lr,r4
+   fdiv r2,r3,r2     ; term /= f
+   fmul r2,r0,r2     ; term *= x;
+   fadd r1,r2,r1     ; res += term
+   fadd r3,lr,r3     ; f += 1.0
    
    inc idx
    jmp exp_loop
 
 exp_done:
-   mov r3,r0         ; r0 = res
+   clr r3
+   cmp r4,r3
+   jeq exp_x_pos2
+
+   fdiv lr,r1,r1     ; x < 0.0 so: res = 1.0 / res
+
+exp_x_pos2:
+   mov r1,r0         ; r0 = res
 
    pop r1            ; Retrieve registers
    pop r2
@@ -3443,12 +3458,12 @@ exp_done:
 ; 
 ; Location: ROM addr 0x2e10
 ;
-; Input:  r0 - n
-; Output: r0 - Ln(n)
+; Input:  r0 - x
+; Output: r0 - Ln(x)
 ;
 ; This uses the Taylor Series - See 'Taylor_Ln.py'
 ;
-; NB - Valid results for inputs in range: 0.05 < x < 5.0
+; NB - Valid results for inputs in range: 0.1 < x < 10.0
 ;--------------------------------------------------------
 
 .= 0x2e10
@@ -3465,6 +3480,11 @@ fmath_ln:
    clr r1            ; r1 = 0.0 (res)
    ldi r2,1.0        ; r2 = 1.0 (div)
 
+   cmp r0,r1         ; Is x <= 0 ?
+   jgt ln_x_ok
+   jmp LN_LTE_ZERO   ; If so: Halt & display the error code
+
+ln_x_ok:
    ldi lr,1.0        ; r3 = (x - 1.0) / (x + 1.0) (mult)
    fsub r0,lr,r3
    fadd r0,lr,r4
@@ -3473,7 +3493,7 @@ fmath_ln:
    mov r3,r4         ; r4 = mult (pow)
    fmul r3,r3,r3     ; r3 = mult * mult (mult2)
 
-   ldi fp,4          ; Initialise loop counter
+   ldi fp,25         ; Initialise loop counter
    ldi idx,1
 
 ln_loop:
