@@ -10,6 +10,20 @@ import com.cburch.logisim.instance.*;
 import com.cburch.logisim.util.GraphicsUtil;
 
 class FPU extends InstanceFactory {
+    final static int OP_ADD  = 0b000;
+    final static int OP_SUB  = 0b001;
+    final static int OP_MUL  = 0b010;
+    final static int OP_DIV  = 0b011;
+    final static int OP_SQRT = 0b100;
+    final static int OP_SIN  = 0b101;
+    final static int OP_COS  = 0b110;
+    final static int OP_TAN  = 0b111;
+
+    final static int NAN     = 0x7e00;
+    final static int POS_INF = 0x7c00;
+    final static int NEG_INF = 0xfc00;
+    final static int ZERO    = 0x0000;
+
     FPU() {
         super("FPU");
 
@@ -23,11 +37,11 @@ class FPU extends InstanceFactory {
                 // NB: The clear/clk/en inputs are 'redundant' here & the done output is always true.
                 new Port(-90, -50, Port.INPUT, StdAttr.WIDTH),  // X
                 new Port(-90, -30, Port.INPUT, StdAttr.WIDTH),  // Y
-                new Port(-60, 0, Port.INPUT, 1),           // clear
-                new Port(-40, 0, Port.INPUT, 1),           // clk
-                new Port(-20, 0, Port.INPUT, 1),           // en
-                new Port(0, 0, Port.INPUT, 3),             // op
-                new Port(30, -30, Port.OUTPUT, 1),         // done
+                new Port(-60, 0, Port.INPUT, 1),                // clear
+                new Port(-40, 0, Port.INPUT, 1),                // clk
+                new Port(-20, 0, Port.INPUT, 1),                // en
+                new Port(0, 0, Port.INPUT, 3),                  // op
+                new Port(30, -30, Port.OUTPUT, 1),              // done
                 new Port(30, -50, Port.OUTPUT, StdAttr.WIDTH)   // Z
         });
     }
@@ -41,22 +55,19 @@ class FPU extends InstanceFactory {
 
     private int to_fp_fmt(double val)
     {
-        if (Double.isNaN(val)) return 0x7e00;
-        else if (val == Double.POSITIVE_INFINITY) return 0x7c00;
-        else if (val == Double.NEGATIVE_INFINITY) return 0xfc00;
-        else if (val == 0.0) return 0x0000;
+        if (Double.isNaN(val)) return NAN;
+        else if (val == Double.POSITIVE_INFINITY) return POS_INF;
+        else if (val == Double.NEGATIVE_INFINITY) return NEG_INF;
+        else if (val == 0.0) return ZERO;
 
         int sign = 0;
-        int exp = 0;
-        int mant = 0;
-
         if (val < 0.0)  {
             sign = 1;
             val *= -1;
         }
 
         // Get the exponent
-        exp = 15;
+        int exp = 15;
 
         // If the number's 2 or above keep dividing by 2 until it's not.
         // While doing this the exponent must be incremented for each division,
@@ -68,8 +79,8 @@ class FPU extends InstanceFactory {
 
         // Numbers beyond the normal range are infinite
         if (exp > 30) {
-            if (sign == 0) return 0x7c00;
-            else return 0xfc00;
+            if (sign == 0) return POS_INF;
+            else return NEG_INF;
         }
 
         // If the number's below 1 keep multiplying by 2 until it's not.
@@ -86,6 +97,7 @@ class FPU extends InstanceFactory {
         }
 
         // Get the mantissa
+        int mant = 0;
 
         // Get rid of the leading '1' for normal numbers
         if (exp != 0) val -= 1.0;
@@ -100,13 +112,7 @@ class FPU extends InstanceFactory {
         }
 
         // Perform any rounding if necessary
-        for (int i = 10; i < 21; i++) {
-            val = 2 * val;
-            if (val >= 1.0) {
-                mant += 1;
-                break;
-            }
-        }
+        if (val >= 0.5) mant += 1;
 
         int fp_fmt = (sign << 15) + (exp << 10) + mant;
         return fp_fmt;
@@ -173,35 +179,35 @@ class FPU extends InstanceFactory {
         BitWidth nBits = state.getAttributeValue(StdAttr.WIDTH);
 
         switch(op) {
-            case 0x0:  // Add
+            case OP_ADD:  // Add
                 Z = X + Y;
                 break;
 
-            case 0x1:  // Subtract
+            case OP_SUB:  // Subtract
                 Z = X - Y;
                 break;
 
-            case 0x2:  // Multiply
+            case OP_MUL:  // Multiply
                 Z = X * Y;
                 break;
 
-            case 0x3:  // Divide
+            case OP_DIV:  // Divide
                 Z = X / Y;
                 break;
 
-            case 0x4:  // Square Root
+            case OP_SQRT:  // Square Root
                 Z = Math.sqrt(X);
                 break;
 
-            case 0x5:  // Sin
+            case OP_SIN:  // Sin
                 Z = Math.sin(Math.toRadians(X));
                 break;
 
-            case 0x6:  // Cos
+            case OP_COS:  // Cos
                 Z = Math.cos(Math.toRadians(X));
                 break;
 
-            case 0x7:  // Tan
+            case OP_TAN:  // Tan
                 Z = Math.tan(Math.toRadians(X));
                 break;
 
