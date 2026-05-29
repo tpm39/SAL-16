@@ -159,21 +159,6 @@ For details on how to run the Verilog version of 'SAL-16' see 'Notes.txt' in the
 | Road Map |
 +----------+
 
-SAL-16x-C:
-----------
-SAL-16I & SAL-16V: New ALU (signed comparisons & floating point comparisons)
-
-Update 'Compiler Doc':
-   Note that can't do: "int rowsA = A[0];"
-   Have a 'Vectors/Matrices' section
-
-Add a 'Misc Features' Doc detailing:
-   Inputs/Outputs
-   Halt command
-   Graphics background usage
-   Error Codes
-
-
 SAL-16x-D:
 ----------
 Detect if there's a 'heap meets stack' error
