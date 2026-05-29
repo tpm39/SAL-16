@@ -4,6 +4,10 @@ Fast Inverse Square Root/
 Graphics/Bresenham/
 Graphics/Images/
 Maths/
+mc/FPGA/*.mc
+!mc/FPGA/TimmiOS.mc
+mc/*.mc
+!mc/TimmiOS.mc
 Misc/
 rmg/*.asm
 rmg/*.py
