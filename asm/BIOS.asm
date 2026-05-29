@@ -1452,7 +1452,7 @@ print_flt_dig:
    push lr              ; Save used registers
    push r1
    ldi r1,9.0           ; Is val >= 9.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_test_8
    ldi r0,0x39
    call os_print_char   ; Display '9'
@@ -1460,7 +1460,7 @@ print_flt_dig:
    jmp pfd_done
 pfd_test_8:
    ldi r1,8.0           ; Is val >= 8.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_test_7
    ldi r0,0x38
    call os_print_char   ; Display '8'
@@ -1468,7 +1468,7 @@ pfd_test_8:
    jmp pfd_done
 pfd_test_7:
    ldi r1,7.0           ; Is val >= 7.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_test_6
    ldi r0,0x37
    call os_print_char   ; Display '7'
@@ -1476,7 +1476,7 @@ pfd_test_7:
    jmp pfd_done
 pfd_test_6:
    ldi r1,6.0           ; Is val >= 6.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_test_5
    ldi r0,0x36
    call os_print_char   ; Display '6'
@@ -1484,7 +1484,7 @@ pfd_test_6:
    jmp pfd_done
 pfd_test_5:
    ldi r1,5.0           ; Is val >= 5.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_test_4
    ldi r0,0x35
    call os_print_char   ; Display '5'
@@ -1492,7 +1492,7 @@ pfd_test_5:
    jmp pfd_done
 pfd_test_4:
    ldi r1,4.0           ; Is val >= 4.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_test_3
    ldi r0,0x34
    call os_print_char   ; Display '4'
@@ -1500,7 +1500,7 @@ pfd_test_4:
    jmp pfd_done
 pfd_test_3:
    ldi r1,3.0           ; Is val >= 3.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_test_2
    ldi r0,0x33
    call os_print_char   ; Display '3'
@@ -1508,7 +1508,7 @@ pfd_test_3:
    jmp pfd_done
 pfd_test_2:
    ldi r1,2.0           ; Is val >= 2.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_test_1
    ldi r0,0x32
    call os_print_char   ; Display '2'
@@ -1516,7 +1516,7 @@ pfd_test_2:
    jmp pfd_done
 pfd_test_1:
    ldi r1,1.0           ; Is val >= 1.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_zero
    ldi r0,0x31
    call os_print_char   ; Display '1'
