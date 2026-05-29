@@ -120,11 +120,12 @@ idtf_done:
 float os_read_float()
 {
    char c;
-   int dig, pow, i;
+   int dig, i;
    float n, mul;
    
    int neg = 0;
    int got_dp = 0;
+   int pow = 0;
    float num = 0.0;
    float div = 10.0;
 
@@ -147,16 +148,16 @@ float os_read_float()
       return NAN;
    }
 
-   // Keep getting digits until 'Enter' (0x0a) or 'e' (0x65) pressed
-   while ((c != 0x0a) && (c != 0x65)) {
+   // Keep getting digits until 'Enter' (0x0a), 'e' (0x65) or 'E' (0x45) pressed
+   while (((c != 0x0a) && (c != 0x65)) && (c != 0x45)) {
       // If c is '.' (0x2e) note decimal point enetered & get next digit
-      if (c == 0x2e) {
+      if ((c == 0x2e) && (got_dp == 0)) {
          got_dp = 1;
          c = os_read_char();
          continue;
       }
 
-      // Return NaN 0x7e00) if c isn't a digit - Outwith '0' (0x30) to '9' (0x39)
+      // Return NaN if c isn't a digit - Outwith '0' (0x30) to '9' (0x39)
       if ((c < 0x30) || (c > 0x39)) {
          return NAN;
       }
@@ -195,27 +196,32 @@ float os_read_float()
       c = os_read_char();
    }
 
-   // Return NaN (0x7e00) if c isn't a digit - Outwith '0' (0x30) to '9' (0x39)
-   if ((c < 0x30) || (c > 0x39)) {
+   // Return NaN if no exponent entered
+   if (c == 0x0a) {
       return NAN;
    }
 
+   // Keep getting digits until 'Enter' (0x0a) pressed
+   while (c != 0x0a) {
+      // Return NaN if c isn't a digit - Outwith '0' (0x30) to '9' (0x39)
+      if ((c < 0x30) || (c > 0x39)) {
+         return NAN;
+      }
+      pow *= 10;
+      pow += (c - 0x30);
+      c = os_read_char();
+   }
+   
    // Adjust num by the exponent
-   pow = c - 0x30;
    if (neg == 1) {
       mul = 0.1;
    }
    else {
       mul = 10.0;
    }
+
    for (i = 0; i < pow; i=i+1) {
       num *= mul;
-   }
-
-   c = os_read_char();
-   // Return NaN (0x7e00) if c isn't 'Enter' (0x0a)
-   if (c != 0x0a) {
-      return NAN;
    }
 
    return num;
@@ -273,7 +279,7 @@ print_flt_dig:
    push lr              ; Save used registers
    push r1
    ldi r1,9.0           ; Is val >= 9.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_test_8
    ldi r0,0x39
    call os_print_char   ; Display '9'
@@ -281,7 +287,7 @@ print_flt_dig:
    jmp pfd_done
 pfd_test_8:
    ldi r1,8.0           ; Is val >= 8.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_test_7
    ldi r0,0x38
    call os_print_char   ; Display '8'
@@ -289,7 +295,7 @@ pfd_test_8:
    jmp pfd_done
 pfd_test_7:
    ldi r1,7.0           ; Is val >= 7.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_test_6
    ldi r0,0x37
    call os_print_char   ; Display '7'
@@ -297,7 +303,7 @@ pfd_test_7:
    jmp pfd_done
 pfd_test_6:
    ldi r1,6.0           ; Is val >= 6.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_test_5
    ldi r0,0x36
    call os_print_char   ; Display '6'
@@ -305,7 +311,7 @@ pfd_test_6:
    jmp pfd_done
 pfd_test_5:
    ldi r1,5.0           ; Is val >= 5.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_test_4
    ldi r0,0x35
    call os_print_char   ; Display '5'
@@ -313,7 +319,7 @@ pfd_test_5:
    jmp pfd_done
 pfd_test_4:
    ldi r1,4.0           ; Is val >= 4.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_test_3
    ldi r0,0x34
    call os_print_char   ; Display '4'
@@ -321,7 +327,7 @@ pfd_test_4:
    jmp pfd_done
 pfd_test_3:
    ldi r1,3.0           ; Is val >= 3.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_test_2
    ldi r0,0x33
    call os_print_char   ; Display '3'
@@ -329,7 +335,7 @@ pfd_test_3:
    jmp pfd_done
 pfd_test_2:
    ldi r1,2.0           ; Is val >= 2.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_test_1
    ldi r0,0x32
    call os_print_char   ; Display '2'
@@ -337,7 +343,7 @@ pfd_test_2:
    jmp pfd_done
 pfd_test_1:
    ldi r1,1.0           ; Is val >= 1.0 ?
-   cmp r0,r1
+   fcmp r0,r1
    jlt pfd_zero
    ldi r0,0x31
    call os_print_char   ; Display '1'
@@ -362,15 +368,15 @@ void os_print_float(float val)
    int exp = 0;
    float val_cpy = val;
 
-   // Deal with NaN (0x7e00 & 0xfe00)
-   if ((val == 0x7e00) || (val == 0xfe00)) {
+   // Deal with NaN
+   if (val == 0x7e00) {
       os_print_char(0x4e);  // 'N'
       os_print_char(0x61);  // 'a'
       os_print_char(0x4e);  // 'N'
       return;
    }
 
-   // Deal with infinities (0x7c00 & 0xfc00)
+   // Deal with pos & neg infinities
    if ((val == 0x7c00) || (val == 0xfc00)) {
       if (val == 0x7c00) {
          os_print_char(0x2b);  // '+'
@@ -384,7 +390,7 @@ void os_print_float(float val)
       return;
    }
 
-   // Deal with zero (0x0000 & 0x8000)
+   // Deal with pos & neg zeros
    if ((val == 0x0000) || (val == 0x8000)) {
       os_print_char(0x30);  // '0'
       os_print_char(0x2e);  // '.'
@@ -464,6 +470,17 @@ void os_print_float(float val)
             val = (10.0 * val) - j;
          }
       }
+   }
+}
+
+void main()
+{
+   float val;
+
+   while (1) {
+      val = os_read_float();
+      os_print_float(val);
+      os_print_char(BIOS_LF);
    }
 }
 
