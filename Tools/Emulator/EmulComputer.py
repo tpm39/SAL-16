@@ -19,6 +19,7 @@ class Computer():
    # RAM address extents
    ROM_START = 0x0000
    RAM_START = 0x8000
+   INT_END   = 0xbfff
    IO_START  = 0xfff0
 
    # I/O Addresses
@@ -90,46 +91,47 @@ class Computer():
    CMD_CALL   = 2
    CMD_JCOND  = 3
    CMD_LD     = 4
-   CMD_LDX    = 5
-   CMD_ST     = 6
-   CMD_STX    = 7
-   CMD_MOV    = 8
-   CMD_MOVSP  = 9
-   CMD_SETPX  = 10
-   CMD_FSETPX = 11
-   CMD_DSI    = 12
-   CMD_ENI    = 13
-   CMD_RTI    = 14
-   CMD_JMPR   = 15
-   CMD_RET    = 16
-   CMD_POP    = 17
-   CMD_PUSH   = 18
-   CMD_ADD    = 19
-   CMD_LSL    = 20
-   CMD_LSR    = 21
-   CMD_ASR    = 22
-   CMD_INC    = 23
-   CMD_DEC    = 24
-   CMD_NOT    = 25
-   CMD_AND    = 26
-   CMD_OR     = 27
-   CMD_XOR    = 28
-   CMD_CMP    = 29
-   CMD_FCMP   = 30
-   CMD_HALT   = 31
-   CMD_SUB    = 32
-   CMD_MUL    = 33
-   CMD_SDIV   = 34
-   CMD_UDIV   = 35
-   CMD_FADD   = 36
-   CMD_FSUB   = 37
-   CMD_FMUL   = 38
-   CMD_FDIV   = 39
-   CMD_FSQRT  = 40
-   CMD_FSIN   = 41
-   CMD_FCOS   = 42
-   CMD_FTAN   = 43
-   CMD_END    = 44
+   CMD_SETHP  = 5
+   CMD_LDX    = 6
+   CMD_ST     = 7
+   CMD_STX    = 8
+   CMD_MOV    = 9
+   CMD_MOVSP  = 10
+   CMD_SETPX  = 11
+   CMD_FSETPX = 12
+   CMD_DSI    = 13
+   CMD_ENI    = 14
+   CMD_RTI    = 15
+   CMD_JMPR   = 16
+   CMD_RET    = 17
+   CMD_POP    = 18
+   CMD_PUSH   = 19
+   CMD_ADD    = 20
+   CMD_LSL    = 21
+   CMD_LSR    = 22
+   CMD_ASR    = 23
+   CMD_INC    = 24
+   CMD_DEC    = 25
+   CMD_NOT    = 26
+   CMD_AND    = 27
+   CMD_OR     = 28
+   CMD_XOR    = 29
+   CMD_CMP    = 30
+   CMD_FCMP   = 31
+   CMD_HALT   = 32
+   CMD_SUB    = 33
+   CMD_MUL    = 34
+   CMD_SDIV   = 35
+   CMD_UDIV   = 36
+   CMD_FADD   = 37
+   CMD_FSUB   = 38
+   CMD_FMUL   = 39
+   CMD_FDIV   = 40
+   CMD_FSQRT  = 41
+   CMD_FSIN   = 42
+   CMD_FCOS   = 43
+   CMD_FTAN   = 44
+   CMD_END    = 45
 
    # Signed Integer Limits
    INT_HIGH = 2**15 - 1
@@ -141,7 +143,8 @@ class Computer():
       self.gr_mem = [0xffd7] * Computer.MEM_SIZE  # The graphics memory (Initialise with background colour)
       self.regs = [0x0000] * Computer.NUM_REGS    # Registers R0 - R4, IDX, FP, LR
       self.flags = [False] * Computer.NUM_FLAGS   # The C, A, E, Z, N, V flags
-      self.sp = 0xffef                            # Stack pointer
+      self.sp = Computer.IO_START - 1             # Stack pointer
+      self.top_hp = Computer.INT_END              # Top of the heap
       self.pc = 0x0000                            # Program counter
       self.cmd = 0x00                             # The current instruction type
       self.instr = 0x0000                         # The current instruction
@@ -576,12 +579,19 @@ class Computer():
          self.byte_2 = self.mem[self.pc]
          self.asm_code = f'{str_cond} 0x{self.byte_2:04x}'
 
-      # LD RC,[RA]
       elif self.instr & Computer.OPCODE_MASK == 0x2000:
-         self.cmd = Computer.CMD_LD
          self.rega = (self.instr & Computer.REGA_MASK) >> Computer.REGA_SHIFT
-         self.regc = (self.instr & Computer.REGC_MASK) >> Computer.REGC_SHIFT
-         self.asm_code = f'LD {Computer.strReg(self.regc)},[{Computer.strReg(self.rega)}]'
+
+         # LD RC,[RA]
+         if self.instr & 0b1 == 0b0:
+            self.cmd = Computer.CMD_LD
+            self.regc = (self.instr & Computer.REGC_MASK) >> Computer.REGC_SHIFT
+            self.asm_code = f'LD {Computer.strReg(self.regc)},[{Computer.strReg(self.rega)}]'
+
+         # SETHP [RA]
+         else:
+            self.cmd = Computer.CMD_SETHP
+            self.asm_code = f'SETHP [{Computer.strReg(self.rega)}]'
 
       # LDX RC,[RA,RB]
       elif self.instr & Computer.OPCODE_MASK == 0x2800:
@@ -932,6 +942,12 @@ class Computer():
          self.regs[self.regc] = self.mem[self.regs[self.rega]]
          self.pc += 1
 
+      # SETHP [RA]
+      elif self.cmd == Computer.CMD_SETHP:
+         addr = self.regs[self.rega]
+         self.top_hp = self.mem[addr]
+         self.pc += 1
+
       # LDX RC,[RA,RB]
       elif self.cmd == Computer.CMD_LDX:
          addr = self.regs[self.rega] + self.regs[self.regb]
@@ -1014,7 +1030,8 @@ class Computer():
       elif self.cmd == Computer.CMD_POP:
          self.sp += 1
          if self.sp >= Computer.IO_START:
-            print('*** CRASH ***\nStack Underflow - Stack Pointer now points to I/O memory\n')
+            Computer.DisplayState(self)
+            print("\n*** CRASH ***\nStack Underflow - Stack Pointer now points to the 'I/O Region'\n")
             exit()
          self.regs[self.regc] = self.mem[self.sp]
          self.pc += 1
@@ -1023,8 +1040,12 @@ class Computer():
       elif self.cmd == Computer.CMD_PUSH:
          self.mem[self.sp] = self.regs[self.rega]
          self.sp -= 1
-         if self.sp < Computer.RAM_START:
-            print('*** CRASH ***\nStack Overflow - Stack Pointer now points to ROM\n')
+         if self.sp == self.top_hp:
+            Computer.DisplayState(self)
+            if self.top_hp == Computer.INT_END:
+               print("\n*** CRASH ***\nStack Overflow - Stack Pointer now points to the 'Interrupt Region'\n")
+            else:
+               print('\n*** CRASH ***\nStack Overflow - Stack Pointer now points to the Heap\n')
             exit()
          self.pc += 1
 
