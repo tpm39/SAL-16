@@ -35,6 +35,7 @@ class Register extends InstanceFactory {
     }
 
     public void propagate(InstanceState state) {
+        int din = state.getPortValue(0).toIntValue();
         int r = state.getPortValue(1).toIntValue();
         int w = state.getPortValue(2).toIntValue();
         int reset = state.getPortValue(3).toIntValue();
@@ -46,7 +47,11 @@ class Register extends InstanceFactory {
             data.reset(nBits);
         }
         else if (w == 1) {
-            data.setVal(state.getPortValue(0));
+            // Pull-down on unknown 'din'
+            if (din >= 0)
+                data.setVal(state.getPortValue(0));
+            else
+                data.setVal(Value.createKnown(nBits, 0));
         }
         state.setPort(5, data.getVal(), 17);
 

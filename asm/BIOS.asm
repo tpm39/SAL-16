@@ -43,6 +43,8 @@
 
 ; Memory Map
 .equ PROG_START 0x8000
+.equ HEAP_SIZE  0xc000
+.equ HEAP_START 0xc001
 .equ IO_START   0xfff0
 
 ; Interrupts
@@ -74,6 +76,9 @@
 .equ BAD_MAT_DIMS 0x0150
 .equ LN_LTE_ZERO  0x0160
 
+; Stack Pointer Violation
+.equ SP_ERR 0x0e00
+
 ; SAL-16I Error Code
 .equ NO_FPU 0x0f00
 
@@ -86,20 +91,45 @@
 
 .code
 
+;--------------------------------------------------------
+; Set the end of the heap in the stack pointer circuitry
+;--------------------------------------------------------
+
+bios_start:
+   ldi r0,HEAP_SIZE
+   ld r1,[r0]              ; r1 = HEAP_SIZE
+
+   clr r2                  ; HEAP_SIZE = 0 ?
+   cmp r1,r2
+   jeq no_heap
+
+   ldi r2,HEAP_START
+   add r2,r1,r1            ; r1 = End of the heap = HEAP_START + HEAP_SIZE
+   jmp set_heap_end
+
+no_heap:
+   mov r0,r1               ; No heap, but don't allow the stack ptr to enter
+   dec r1                  ; the 'Interrupt Region' - So: r1 = 0xbfff
+
+set_heap_end:
+   st r1,[r0]              ; Mem(HEAP_SIZE) = End of the heap 
+   sethp [r0]
+
 ;-------------------------------
 ; Goto the start of the program
 ;-------------------------------
 
-jmp PROG_START
+   jmp PROG_START
 
 ;------------------------
 ; Interrupt Vector Table
 ;------------------------
 
-.= 0x0010
+.= 0x00f0
    jmp INT_ENT_1
    jmp INT_ENT_2
    jmp INT_KBD
+   jmp SP_ERR
    jmp NO_FPU              ; Only for SAL-16I
 
 ;----------------
@@ -141,6 +171,11 @@ jmp PROG_START
 ; ln(x) with x <= 0.0
 .= 0x0160
    ldi r0,LN_LTE_ZERO
+   jmp os_exit
+
+; Stack Pointer Violation
+.= 0x0e00
+   ldi r0,SP_ERR
    jmp os_exit
 
 ; No FPU available for floating point instructions (only used by SAL-16I)
@@ -2357,11 +2392,14 @@ os_exit:
    end                  ; No error - Just stop the program
 
 disp_err:
-   mov r0,r1            ; Display the Error Code
-   ldi r0,OUT_1
-   call os_disp_out
+   ldi r1,OUT_1         ; Display the Error Code
+   ldi r2,IO_START      ; NB: Don't call 'os_disp_out' as we may be in a 'Stack Violation'
+   add r1,r2,r1         ;     and so we don't want more PUSHing or POPing
+   st r0,[r1]
+
    ldi r0,1             ; Turn the ERR LED on
    ldi r1,ERR
    st r0,[r1]
+
    end                  ; Stop the program
 

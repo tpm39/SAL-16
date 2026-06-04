@@ -1,17 +1,17 @@
 
 +--------------------+
-| SAL-16x-C Versions |
+| SAL-16x-D Versions |
 +--------------------+
 
-There are 4 'flavours' of 'SAL-16x-C':
+There are 4 'flavours' of 'SAL-16x-D':
 
-SAL-16F-C: This is built using 'chips' comprised of Logisim Primitives.
+SAL-16F-D: This is built using 'chips' comprised of Logisim Primitives.
 
-SAL-16I-C: This 'SAL-16F-C', but with the FPU & its associated circuitry removed.
+SAL-16I-D: This is 'SAL-16F-D', but with the FPU & its associated circuitry removed.
 
-SAL-16J-C: This is built using 'chips' from the 'SAL-16 Chips' Java Library.
+SAL-16J-D: This is built using 'chips' from the 'SAL-16 Chips' Java Library.
 
-SAL-16V-C: This is the Logisim version of SAL-16 that the Verilog code is based on.
+SAL-16V-D: This is the Logisim version of SAL-16 that the Verilog code is based on.
 
 
 +-----------------+
@@ -24,17 +24,17 @@ I am using the Kevin Walsh version of Logisim-Evolution, which can be found at:
 
 
 +--------------------+
-| SAL-16x-C Download |
+| SAL-16x-D Download |
 +--------------------+
 
-The SAL-16x-C.zip download has the following structure:
+The SAL-16x-D directory structure is:
 
-SAL-16x-C
+SAL-16x-D
    asm            : The assembly files I have written
    Docs           : The documentation
    Graphics       : Some graphics backgrounds & notes on how to generate a background
    Java           : The files for the creation of the 'SAL-16 Chips' Java Library
-   Logisim        : The SAL-16x-C Logisim circuits
+   Logisim        : The SAL-16x-D Logisim circuits
    mc             : Folder for the generated machine code files
    Microcode      : The microcode files
    Notes.txt      : These notes :)
@@ -58,7 +58,7 @@ This generates 'MicrocodeLUT.uc', which should be loaded into the control unit's
 | Assembler |
 +-----------+
 
-To assemble a file, eg Prog.asm, run the following from the command line in the folder where 'SAL-16x-C' was installed:
+To assemble a file, eg Prog.asm, run the following from the command line in the folder where 'SAL-16x-D' was installed:
 
    python3 ./Tools/Assembler.py [-h] ./asm/Prog.asm ./mc/Prog.mc
 
@@ -81,7 +81,7 @@ A list of the directives that can be used in 'asm' files is at:
 | Linker |
 +--------+
 
-To link a number of files, eg Prog1.mc, Prog2.mc and Prog3.mc to produce Prog.mc, run the following from the command line in the folder where 'SAL-16x-C' was installed:
+To link a number of files, eg Prog1.mc, Prog2.mc and Prog3.mc to produce Prog.mc, run the following from the command line in the folder where 'SAL-16x-D' was installed:
 
    python3 ./Tools/Linker.py [-h] ./mc/Prog.mc ./mc/Prog1.mc ./mc/Prog2.mc ./mc/Prog3.mc
 
@@ -94,7 +94,7 @@ Prog.mc can then be loaded into memory in Logisim, or be run from the emulator.
 | Compiler |
 +----------+
 
-To compile a file, eg Prog.rmg, run the following from the command line in the folder where 'SAL-16x-C' was installed:
+To compile a file, eg Prog.rmg, run the following from the command line in the folder where 'SAL-16x-D' was installed:
 
    python3 ./Tools/Compiler/Compiler.py [-h] [-m MEM] [-p PRINT_OPT] ./rmg/Prog.rmg ./asm/Prog.asm
 
@@ -103,7 +103,7 @@ where the following are optional arguments:
    '-m MEM' is used to set the target memory for the code: MEM = ROM | RAM (default).
    '-p PRINT_OPT' is used to print the token and/or node lists for debugging: PRINT_OPT = NONE (default) | TOKENS | NODES | BOTH.
 
-The resulting '.asm' file will then have to be assembled before running on 'SAL-16x-C'.
+The resulting '.asm' file will then have to be assembled before running on 'SAL-16x-D'.
 
 
 Further compiler info is at:
@@ -156,19 +156,15 @@ For details on how to run the Verilog version of 'SAL-16' see 'Notes.txt' in the
 
 
 +----------+
-| Road Map |
+| Wishlist |
 +----------+
 
-SAL-16x-D:
-----------
-Detect if there's a 'heap meets stack' error
+malloc(), calloc() & free()
 
 Interrupts: Requires a revamp as some interrupts are missed & 'SAL-16' occasionally hangs
 
 Compiler: Allow inline assembly code
 
-
-SAL-16x-E:
-----------
 Pipelining ... ??
+
 

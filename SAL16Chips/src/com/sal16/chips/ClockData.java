@@ -102,3 +102,4 @@ class ClockData implements InstanceData, Cloneable {
         return clks;
     }
 }
+

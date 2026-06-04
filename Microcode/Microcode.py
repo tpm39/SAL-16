@@ -61,7 +61,7 @@ instr = '0b00011'
 codes = [0x00600500, 0x00020200, 0x00100000, 0x20000000]
 AddCode(instr, codes)
 
-# LD
+# LD / SETHP
 instr = '0b00100'
 codes = [0x00040400, 0x00100030, 0x20000000]
 AddCode(instr, codes)
@@ -103,7 +103,7 @@ instr = '0b01011'
 codes = [0x00000000, 0x00040040, 0x07080100, 0x00020400, 0x108c0080, 0x20000000]
 AddCode(instr, codes)
 
-# ENI/DSI
+# DSI / ENI
 instr = '0b01100'
 codes = [0x20000000]
 AddCode(instr, codes)
@@ -113,7 +113,7 @@ instr = '0b01101'
 codes = [0x08000000, 0x20000000]
 AddCode(instr, codes)
 
-# JMPR/RET
+# JMPR / RET
 instr = '0b01110'
 codes = [0x00040200, 0x20000000]
 AddCode(instr, codes)
@@ -138,7 +138,7 @@ instr = '0b10010'
 codes = [0x00080040, 0x00044108, 0x00020030, 0x20000000]
 AddCode(instr, codes)
 
-# LSR/ASR
+# LSR / ASR
 instr = '0b10011'
 codes = [0x00080040, 0x0004c108, 0x00020030, 0x20000000]
 AddCode(instr, codes)
@@ -168,12 +168,12 @@ instr = '0b11000'
 codes = [0x00080040, 0x00045108, 0x00020030, 0x20000000]
 AddCode(instr, codes)
 
-# XOR/CLR
+# XOR / CLR
 instr = '0b11001'
 codes = [0x00080040, 0x00043108, 0x00020030, 0x20000000]
 AddCode(instr, codes)
 
-# CMP/FCMP
+# CMP / FCMP
 instr = '0b11010'
 codes = [0x00080040, 0x00047108, 0x20000000]
 AddCode(instr, codes)
@@ -183,17 +183,17 @@ instr = '0b11011'
 codes = [0x00000001, 0x20000000]
 AddCode(instr, codes)
 
-# SUB/MUL/SDIV/UDIV
+# SUB / MUL / SDIV / UDIV
 instr = '0b11100'
 codes = [0x00080040, 0x01040108, 0x00020030, 0x20000000]
 AddCode(instr, codes)
 
-# FADD/FSUB/FMUL/FDIV
+# FADD / FSUB / FMUL / FDIV
 instr = '0b11101'
 codes = [0x00080040, 0x02040100, 0x00020030, 0x20000000]
 AddCode(instr, codes)
 
-# FSQRT/FSIN/FCOS/FTAN
+# FSQRT / FSIN / FCOS / FTAN
 instr = '0b11110'
 codes = [0x02840100, 0x00020030, 0x20000000]
 AddCode(instr, codes)

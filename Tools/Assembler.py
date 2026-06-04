@@ -33,6 +33,7 @@ Double Word Commands:
 
 Single Word Commands:
 00100 aaa 000 ccc 00 - LD RC,[RA]      : Load RC from the mem addr in RA
+00100 aaa 000 000 01 - SETHP [RA]      : Set heap end in the SP from the mem addr in RA
 00101 aaa bbb ccc 00 - LDX RC,[RA,RB]  : Load RC from the mem addr given by (RA + RB)
 00110 aaa 000 ccc 00 - ST RA,[RC]      : Store RA to the mem addr in RC
 00111 aaa bbb ccc 00 - STX RA,[RC,RB]  : Store RA to the mem addr given by (RC + RB)
@@ -97,6 +98,7 @@ cmds = {'LDI'    : 0b00000,
         'CALL'   : 0b00010,
         'JMPIF'  : 0b00011,
         'LD'     : 0b00100,
+        'SETHP'  : 0b00100,
         'LDX'    : 0b00101,        
         'ST'     : 0b00110,
         'STX'    : 0b00111,
@@ -593,8 +595,9 @@ try:
                         # Remove any whitespace before/after any commas
                         line = rem_whitspace(line, ',')
 
-                        # Remove any whitespace before/after any opening brackets
-                        line = rem_whitspace(line, '[')
+                        # Remove any whitespace before/after any opening brackets (but not for 'set heap')
+                        if not line.startswith('SETHP'):
+                           line = rem_whitspace(line, '[')
 
                         # Remove any whitespace before/after any closing brackets
                         line = rem_whitspace(line, ']')
@@ -758,6 +761,21 @@ try:
                                 raise SyntaxError()
 
                             code = (cmds[cmd] << POS_OPCODE) + (regs[ra] << POS_REG_A) + (regs[rb] << POS_REG_B) + (regs[rc] << POS_REG_C)
+
+                        elif cmd.startswith('SETHP'):
+                            if not isinstance(args, str):
+                                raise SyntaxError()
+
+                            if args[0] != '[' or args[-1] != ']':
+                                raise SyntaxError()
+
+                            # Set the register
+                            ra = args[1:-1]
+
+                            if ra not in regs:
+                                raise SyntaxError()
+                            
+                            code = (cmds[cmd] << POS_OPCODE) + (regs[ra] << POS_REG_A) + 1
 
                         elif cmd in ['ST', 'STX']:
                             if not isinstance(args, str):

@@ -50,7 +50,7 @@ locals = {}       # 'var' : (Index, Initial Value, Pointer ?, Array ?, Type), NB
 array_addrs = {}  # 'arr' : Address
 array_inits = {}  # 'arr' : [Initial Val 0, Initial Val 1, ...]
 var_types_used = set()
-next_heap_addr = HEAP_START
+next_heap_addr = HEAP_START + 1
 fileIn = None
 asm = None
 lbl_count = 1
@@ -197,8 +197,20 @@ def generate(nodes, file_in, fileOut, include_files, section):
                 continue
 
         # Deal with the data section
+        # Get the Heap size
+        heap_size = 0
+        for var in globals:
+            if globals[var][GLOBAL_IS_ARR]:
+                # Add a global array length
+                heap_size += len(array_inits[var])
+            else:
+                # Add a global int
+                heap_size += 1
+
+        # Write the Heap
         asm.write('\n; Heap\n\n.data\n\n')
         asm.write(f'.= {hex(HEAP_START)}\n\n')
+        asm.write(f'heap_size: word {hex(heap_size)}\n')
         for var in globals:
             if globals[var][GLOBAL_IS_ARR]:
                 # Add global arrays to the heap
