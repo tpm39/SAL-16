@@ -165,6 +165,7 @@ Interrupts: Requires a revamp as some interrupts are missed & 'SAL-16' occasiona
 
 Compiler: Allow inline assembly code
 
-Pipelining ... ??
+Single player 'Pong Squash'
 
+Pipelining ... ??
 
