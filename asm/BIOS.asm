@@ -32,6 +32,8 @@
 ; .equ os_read_float  0x1330
 ; .equ os_print_float 0x16b0
 ; .equ os_exit        0x1a90
+; .equ os_play_tune   0x1ac0
+; .equ os_delay       0x1af0
 ;
 ; .equ IN_1  3
 ; .equ IN_2  7
@@ -44,7 +46,8 @@
 ; Memory Map
 .equ PROG_START 0x8000
 .equ HEAP_SIZE  0xc000
-.equ HEAP_START 0xc001
+.equ HEAP_END   0xc001
+.equ HEAP_START 0xc002
 .equ IO_START   0xfff0
 
 ; Interrupts
@@ -56,6 +59,7 @@
 .equ ERR 0xfff0
 .equ KBD 0xfff1
 .equ TTY 0xfff2
+.equ SND 0xfffb
 
 .equ IN_1  3
 .equ IN_2  7
@@ -91,29 +95,30 @@
 
 .code
 
-;--------------------------------------------------------
+;-------------------------------------------------------------
 ; Set the end of the heap in the stack pointer circuitry
-;--------------------------------------------------------
+;-------------------------------------------------------------
 
 bios_start:
-   ldi r0,HEAP_SIZE
-   ld r1,[r0]              ; r1 = HEAP_SIZE
+   mov HEAP_SIZE,r0
+   mov [r0],r1             ; r1 = 'heap size'
 
-   clr r2                  ; HEAP_SIZE = 0 ?
+   clr r2                  ; 'heap size' = 0 ?
    cmp r1,r2
    jeq no_heap
 
-   ldi r2,HEAP_START
-   add r2,r1,r1            ; r1 = End of the heap = HEAP_START + HEAP_SIZE
+   mov HEAP_START,r2
+   add r2,r1,r1            ; r1 = End of the heap = HEAP_START + 'heap size' - 1
+   dec r1
    jmp set_heap_end
 
 no_heap:
-   mov r0,r1               ; No heap, but don't allow the stack ptr to enter
-   dec r1                  ; the 'Interrupt Region' - So: r1 = 0xbfff
+   mov HEAP_END,r1         ; No heap, but don't allow the stack ptr to reach addr HEAP_END
 
 set_heap_end:
-   st r1,[r0]              ; Mem(HEAP_SIZE) = End of the heap 
-   sethp [r0]
+   mov HEAP_END,r0         ; Mem(HEAP_END) = Addr of the end of the heap 
+   mov r1,[r0]
+   endhp [r0]
 
 ;-------------------------------
 ; Goto the start of the program
@@ -140,47 +145,47 @@ set_heap_end:
 
 ; Division by 0
 .= 0x0100
-   ldi r0,DIV_BY_0
+   mov DIV_BY_0,r0
    jmp os_exit
 
 ; Undefined power: 0^0
 .= 0x0110
-   ldi r0,POW_UNDEF
+   mov POW_UNDEF,r0
    jmp os_exit
 
 ; Integer not in range
 .= 0x0120
-   ldi r0,BAD_INT
+   mov BAD_INT,r0
    jmp os_exit
 
 ; Invalid input data
 .= 0x0130
-   ldi r0,INV_DATA
+   mov INV_DATA,r0
    jmp os_exit
 
 ; Bad vector dimensions
 .= 0x0140
-   ldi r0,BAD_VEC_DIMS
+   mov BAD_VEC_DIMS,r0
    jmp os_exit
 
 ; Bad matrix dimensions
 .= 0x0150
-   ldi r0,BAD_MAT_DIMS
+   mov BAD_MAT_DIMS,r0
    jmp os_exit
 
 ; ln(x) with x <= 0.0
 .= 0x0160
-   ldi r0,LN_LTE_ZERO
+   mov LN_LTE_ZERO,r0
    jmp os_exit
 
 ; Stack Pointer Violation
 .= 0x0e00
-   ldi r0,SP_ERR
+   mov SP_ERR,r0
    jmp os_exit
 
 ; No FPU available for floating point instructions (only used by SAL-16I)
 .= 0x0f00
-   ldi r0,NO_FPU
+   mov NO_FPU,r0
    jmp os_exit
 
 ;------------------------------------------------
@@ -201,7 +206,7 @@ os_get_in:
 
    clr r1               ; r1 = 0
    clr r2               ; r2 = 0
-   ldi r3,IO_START      ; r3 = 0xfff0 (the start of I/O memory)
+   mov IO_START,r3      ; r3 = 0xfff0 (the start of I/O memory)
    add r0,r3,r3         ; r3 now points to IN_x
 
    add r3,r1,r1
@@ -210,19 +215,19 @@ os_get_in:
    add r1,r2,r2         ; r2 points to ENTER_x (the enter button)
    inc r2
 
-   ldi r0,1             ; Turn the LED on
-   st r0,[r1]
+   mov 1,r0             ; Turn the LED on
+   mov r0,[r1]
    push r1              ; Store the WAIT_x addr on the stack
 
 in_chk_ent:
-   ld r1,[r2]           ; Put the button state in r1
+   mov [r2],r1          ; Put the button state in r1
    cmp r0,r1
    jgt in_chk_ent       ; Stay in the 'check_enter loop' until the button is pressed
 
    pop r1               ; Retrieve the WAIT_x addr from the stack
    clr r0
-   st r0,[r1]           ; Turn off the LED
-   ld r0,[r3]           ; r0 = IN_x
+   mov r0,[r1]          ; Turn off the LED
+   mov [r3],r0          ; r0 = IN_x
 
    pop r1               ; Retrieve registers
    pop r2
@@ -243,9 +248,9 @@ in_chk_ent:
 os_disp_out:
    push r2              ; Save used register
 
-   ldi r2,IO_START      ; r2 holds the device addr
+   mov IO_START,r2      ; r2 holds the device addr
    add r2,r0,r0
-   st r1,[r0]           ; Store display val to device addr
+   mov r1,[r0]          ; Store display val to device addr
 
    pop r2               ; Retrieve register
    ret
@@ -265,16 +270,16 @@ os_read_char:
    push r2
    push r1
 
-   ldi r2,KBD
-   ldi r3,TTY
+   mov KBD,r2
+   mov TTY,r3
    clr r1               ; r1 is used to test for an available char
 
 gc_rd_val:
-   ld r0,[r2]           ; Read a char from the keyboard
+   mov [r2],r0          ; Read a char from the keyboard
    cmp r0,r1            ; Got a char ?
    jeq gc_rd_val        ; No char - try another read     
 
-   st r0,[r3]           ; Display the char
+   mov r0,[r3]          ; Display the char
 
    pop r1               ; Retrieve registers
    pop r2
@@ -294,8 +299,8 @@ gc_rd_val:
 os_print_char:
    push r1              ; Save used register
 
-   ldi r1,TTY
-   st r0,[r1]           ; Display the char
+   mov TTY,r1
+   mov r0,[r1]          ; Display the char
 
    pop r1               ; Retrieve register
    ret
@@ -320,27 +325,27 @@ os_read_str:
    push r0
 
    mov r0,r1
-   ldi r2,0x0a          ; 'LF'
-   ldi r3,TTY
-   ldi r4,KBD
+   mov 0x0a,r2          ; 'LF'
+   mov TTY,r3
+   mov KBD,r4
    clr idx
    clr fp               ; fp is used to test for an available char
 
 gs_next:
-   ld r0,[r4]           ; Read a char from the keyboard
+   mov [r4],r0          ; Read a char from the keyboard
    cmp r0,fp            ; Got a char ?
    jeq gs_next          ; No char - try another read     
 
    cmp r0,r2            ; We're done if it's a LF
    jeq gs_done
-   st r0,[r3]           ; Display the char
-   stx r0,[r1,idx]      ; Store the char
+   mov r0,[r3]          ; Display the char
+   mov r0,[r1,idx]      ; Store the char
    inc idx
    jmp gs_next
 
 gs_done:
    clr r2
-   stx r2,[r1,idx]      ; Store null (string terminator)
+   mov r2,[r1,idx]      ; Store null (string terminator)
 
    pop r0               ; Retrieve registers
    pop r1
@@ -367,15 +372,15 @@ os_print_str:
    push r2
    push r1
 
-   ldi r1,TTY
+   mov TTY,r1
    clr idx
    clr r3               ; r3 is used to test for null (end of string)
 
 ps_next:
-   ldx r2,[r0,idx]      ; Get the next char from memory
+   mov [r0,idx],r2      ; Get the next char from memory
    cmp r2,r3            ; If it's a null we're done
    jeq ps_done
-   st r2,[r1]           ; Print the char
+   mov r2,[r1]          ; Print the char
    inc idx
    jmp ps_next
 
@@ -398,7 +403,7 @@ ps_done:
 .= 0x1110
 
 os_mem_set:
-	st r1,[r0]           ; Store value to address
+	mov r1,[r0]          ; Store value to address
    ret
 
 ;-------------------------------
@@ -421,7 +426,7 @@ os_mem_setn:
 ms_loop:
    cmp idx,r1           ; Done the whole region ?
    jeq ms_done
-	stx r2,[r0,idx]      ; Store value to address
+	mov r2,[r0,idx]      ; Store value to address
    inc idx
    jmp ms_loop
 
@@ -443,7 +448,7 @@ ms_done:
 os_mem_read:
    push r1              ; Save used register
 
-	ld r1,[r0]	         ; Read value at address
+	mov [r0],r1	         ; Read value at address
 	mov r1,r0	         ; Return value
 
    pop r1               ; Retrieve register
@@ -469,37 +474,37 @@ os_read_int:
    push r1
 
    clr r2               ; number (r2) = 0
-   ldi r4,FALSE         ; Clear 'minus flag' (r4)
+   mov FALSE,r4         ; Clear 'minus flag' (r4)
    clr idx              ; char count (idx) = 0
-   ldi r1,10            ; r1 is used to store 10 for digit multiplication & to test digit limit
+   mov 10,r1            ; r1 is used to store 10 for digit multiplication & to test digit limit
 
 gi_next_char:
-   ldi fp,KBD           ; Read a char from the keyboard
-   ld r0,[fp]
+   mov KBD,fp           ; Read a char from the keyboard
+   mov [fp],r0
    clr lr               ; Got a char ?
    cmp r0,lr
    jeq gi_next_char     ; No char - try another read     
 
    inc idx              ; char count += 1
 
-   ldi r3,CHR_ENT       ; Is it the 'Enter' key ? 
+   mov CHR_ENT,r3       ; Is it the 'Enter' key ? 
    cmp r0,r3
    jeq gi_done
 
-   ldi fp,TTY           ; Display char on text screen
-   st r0,[fp]
+   mov TTY,fp           ; Display char on text screen
+   mov r0,[fp]
 
-   ldi r3,CHR_MINUS     ; Is it the '-' key ? 
+   mov CHR_MINUS,r3     ; Is it the '-' key ? 
    cmp r0,r3
    jne gi_read_next
-   ldi lr,1             ; '-' only allowed as the 1st char
+   mov 1,lr             ; '-' only allowed as the 1st char
    cmp idx,lr
    jne gi_bad_char
-   ldi r4,TRUE          ; Set 'minus' flag
+   mov TRUE,r4          ; Set 'minus' flag
    jmp gi_next_char
 
 gi_read_next:
-   ldi r3,CHR_ZERO      ; r0 is the next digit (char - CHR_ZERO)
+   mov CHR_ZERO,r3      ; r0 is the next digit (char - CHR_ZERO)
    sub r0,r3,r0
    jmi gi_bad_char      ; digit < 0 ? - If so it's invalid
    cmp r0,r1            ; digit > 9 ? - If so it's invalid
@@ -508,14 +513,14 @@ gi_read_next:
    mul r2,r1,r2         ; Update the number with the digit 
    add r2,r0,r2
 
-   ldi r3,MAX_SIGN_INT  ; Check it's a valid number (-32,767 -> 32,767)
+   mov MAX_SIGN_INT,r3  ; Check it's a valid number (-32,767 -> 32,767)
    cmp r2,r3
    jle gi_next_char
 
 	jmp BAD_INT          ; The number's out of range
 
 gi_done:
-   ldi lr,FALSE
+   mov FALSE,lr
    cmp r4,lr            ; Is it a negative number ?
    jeq gi_pos
    not r2,r2            ; Negate number
@@ -556,23 +561,23 @@ os_print_int:
    push r1
    push r0
 
-   ldi r4,TTY           ; r4 = Display address
-   ldi fp,CHR_ZERO      ; fp = ASCII '0'
+   mov TTY,r4           ; r4 = Display address
+   mov CHR_ZERO,fp      ; fp = ASCII '0'
 
    clr r1               ; Determine if number < 0, = 0 or > 0 ?
    add r0,r1,r0
    jeq pi_zero
    jpl pi_pos
 
-   ldi r1,CHR_MINUS     ; Display '-'
-   st r1,[r4]
+   mov CHR_MINUS,r1     ; Display '-'
+   mov r1,[r4]
    not r0,r0            ; r0 = abs(number)
    inc r0
 
 pi_pos:
-   ldi idx,GET_INT_NUM  ; Initialise digit count
-   ldi r2,10            ; Divisor (r2) = 10
-   ldi r3,TRUE          ; Set 'leading zero' flag
+   mov GET_INT_NUM,idx  ; Initialise digit count
+   mov 10,r2            ; Divisor (r2) = 10
+   mov TRUE,r3          ; Set 'leading zero' flag
 
 pi_next_dig:
    udiv r0,r2,r1        ; Remainder (r1) is the next decimal digit - this is doing: r1 = r0 % r2
@@ -587,8 +592,8 @@ pi_next_dig:
    jmp pi_next_dig
 
 pi_disp:                ; Display the decimal digits 
-   ldi idx,GET_INT_NUM
-   ldi lr,TRUE
+   mov GET_INT_NUM,idx
+   mov TRUE,lr
 
 pi_next_char:
    pop r0   	         ; Get the next char
@@ -599,8 +604,8 @@ pi_next_char:
    jeq pi_lead_zero     ; Don't display leading zeros
 
 pi_disp_char:
-   ldi r3,FALSE         ; Clear 'leading zero' flag
-   st r0,[r4]           ; Display the char
+   mov FALSE,r3         ; Clear 'leading zero' flag
+   mov r0,[r4]          ; Display the char
 
 pi_lead_zero:
    dec idx
@@ -608,8 +613,8 @@ pi_lead_zero:
    jmp pi_next_char
 
 pi_zero:
-   ldi r0,CHR_ZERO      ; Display '0'
-   st r0,[r4]
+   mov CHR_ZERO,r0      ; Display '0'
+   mov r0,[r4]
    
 pi_done:
    pop r0               ; Restore registers & return
@@ -642,22 +647,22 @@ os_read_uint:
    push r1
 
    clr r2               ; number (r2) = 0
-   ldi r1,10            ; r1 is used to store 10 for digit multiplication & to test digit limit
-   ldi r3,CHR_ENT
-   ldi r4,CHR_ZERO
-   ldi idx,KBD
-   ldi fp,TTY
+   mov 10,r1            ; r1 is used to store 10 for digit multiplication & to test digit limit
+   mov CHR_ENT,r3
+   mov CHR_ZERO,r4
+   mov KBD,idx
+   mov TTY,fp
    clr lr               ; lr is used for char detection
 
 gu_next_char:
-   ld r0,[idx]          ; Read a char from the keyboard
+   mov [idx],r0         ; Read a char from the keyboard
    cmp r0,lr            ; Got a char ?
    jeq gu_next_char     ; No char - try another read     
 
    cmp r0,r3            ; Is it the 'Enter' key ? 
    jeq gu_done
 
-   st r0,[fp]           ; Display char on text screen
+   mov r0,[fp]          ; Display char on text screen
 
    sub r0,r4,r0         ; r0 is the next digit (char - CHR_ZERO)
    jmi gu_err           ; digit < 0 ? - If so it's invalid
@@ -705,15 +710,15 @@ os_print_uint:
    push r1
    push r0
 
-   ldi r4,TTY           ; r4 = Display address
+   mov TTY,r4           ; r4 = Display address
 
    clr r1               ; Is number = 0 ?
    add r0,r1,r0
    jeq pu_zero
 
-   ldi idx,GET_INT_NUM  ; Initialise digit count
-   ldi fp,CHR_ZERO      ; fp = ASCII '0'
-   ldi r2,10
+   mov GET_INT_NUM,idx  ; Initialise digit count
+   mov CHR_ZERO,fp      ; fp = ASCII '0'
+   mov 10,r2
 
 pu_next_dig:
    udiv r0,r2,r1        ; Remainder (r1) is the next decimal digit - this is doing: r1 = r0 % r2
@@ -728,9 +733,9 @@ pu_next_dig:
    jmp pu_next_dig
 
 pu_disp:                ; Display the decimal digits
-   ldi idx,GET_INT_NUM  ; Initialise digit count
-   ldi r3,TRUE          ; Set 'leading zero' flag
-   ldi lr,TRUE          
+   mov GET_INT_NUM,idx  ; Initialise digit count
+   mov TRUE,r3          ; Set 'leading zero' flag
+   mov TRUE,lr          
 
 pu_next_char:
    pop r0   	         ; Get the next char
@@ -741,8 +746,8 @@ pu_next_char:
    jeq pu_lead_zero     ; Don't display leading zeros
 
 pu_disp_char:
-   ldi r3,FALSE         ; Clear 'leading zero' flag
-   st r0,[r4]           ; Display the char
+   mov FALSE,r3         ; Clear 'leading zero' flag
+   mov r0,[r4]          ; Display the char
 
 pu_lead_zero:
    dec idx
@@ -750,8 +755,8 @@ pu_lead_zero:
    jmp pu_next_char
 
 pu_zero:
-   ldi r0,CHR_ZERO      ; Display '0'
-   st r0,[r4]
+   mov CHR_ZERO,r0      ; Display '0'
+   mov r0,[r4]
    
 pu_done:
    pop r0               ; Restore registers & return
@@ -781,58 +786,58 @@ pu_done:
 
 int_dig_to_flt:
    push r1              ; Save used register
-   ldi r1,9             ; Is val = 9 ?
+   mov 9,r1             ; Is val = 9 ?
    cmp r0,r1
    jne idtf_test_8
-   ldi r0,9.0           ; Return 9.0
+   mov 9.0,r0           ; Return 9.0
    jmp idtf_done
 idtf_test_8:
    dec r1               ; Is val = 8 ?
    cmp r0,r1
    jne idtf_test_7
-   ldi r0,8.0           ; Return 8.0
+   mov 8.0,r0           ; Return 8.0
    jmp idtf_done
 idtf_test_7:
    dec r1               ; Is val = 7 ?
    cmp r0,r1
    jne idtf_test_6
-   ldi r0,7.0           ; Return 7.0
+   mov 7.0,r0           ; Return 7.0
    jmp idtf_done
 idtf_test_6:
    dec r1               ; Is val = 6 ?
    cmp r0,r1
    jne idtf_test_5
-   ldi r0,6.0           ; Return 6.0
+   mov 6.0,r0           ; Return 6.0
    jmp idtf_done
 idtf_test_5:
    dec r1               ; Is val = 5 ?
    cmp r0,r1
    jne idtf_test_4
-   ldi r0,5.0           ; Return 5.0
+   mov 5.0,r0           ; Return 5.0
    jmp idtf_done
 idtf_test_4:
    dec r1               ; Is val = 4 ?
    cmp r0,r1
    jne idtf_test_3
-   ldi r0,4.0           ; Return 4.0
+   mov 4.0,r0           ; Return 4.0
    jmp idtf_done
 idtf_test_3:
    dec r1               ; Is val = 3 ?
    cmp r0,r1
    jne idtf_test_2
-   ldi r0,3.0           ; Return 3.0
+   mov 3.0,r0           ; Return 3.0
    jmp idtf_done
 idtf_test_2:
    dec r1               ; Is val = 2 ?
    cmp r0,r1
    jne idtf_test_1
-   ldi r0,2.0           ; Return 2.0
+   mov 2.0,r0           ; Return 2.0
    jmp idtf_done
 idtf_test_1:
    dec r1               ; Is val = 1 ?
    cmp r0,r1
    jne idtf_zero
-   ldi r0,1.0           ; Return 1.0
+   mov 1.0,r0           ; Return 1.0
    jmp idtf_done
 idtf_zero:
    clr r0               ; Return 0.0
@@ -880,31 +885,31 @@ os_read_float:
    push r0
    clr r0
    push r0
-   ldi r0,18688
+   mov 18688,r0
    push r0
    clr r0
    push r0
    clr r0
    push r0
-   ldi idx,-10
+   mov -10,idx
    add fp,idx,r0
-   ldi idx,-11
-   stx r0,[fp,idx]
-   ldi idx,-11
-   ldx r0,[fp,idx]
-   ldi r1,32256
+   mov -11,idx
+   mov r0,[fp,idx]
+   mov -11,idx
+   mov [fp,idx],r0
+   mov 32256,r1
    call os_mem_set
    call os_read_char
-   ldi idx,0
-   stx r0,[fp,idx]
-   ldi idx,0
-   ldx r0,[fp,idx]
+   clr idx
+   mov r0,[fp,idx]
+   clr idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,45
+   mov 45,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jeq cond_os_read_float_30
    clr r2
@@ -915,35 +920,35 @@ cond_os_read_float_30:
    clr r1
    cmp r0,r1
    jeq if_os_read_float_28
-   ldi r0,1
-   ldi idx,-6
-   stx r0,[fp,idx]
+   mov 1,r0
+   mov -6,idx
+   mov r0,[fp,idx]
    call os_read_char
-   ldi idx,0
-   stx r0,[fp,idx]
+   clr idx
+   mov r0,[fp,idx]
 if_os_read_float_28:
-   ldi idx,0
-   ldx r0,[fp,idx]
+   clr idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,48
+   mov 48,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r1,r0
    jgt cond_None_33
    clr r2
 cond_None_33:
    mov r2,r0
    push r0
-   ldi idx,0
-   ldx r0,[fp,idx]
+   clr idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,57
+   mov 57,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jgt cond_None_35
    clr r2
@@ -952,7 +957,7 @@ cond_None_35:
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    clr r3
    cmp r0,r3
    jgt cond_os_read_float_37
@@ -966,17 +971,17 @@ cond_os_read_float_37:
    clr r1
    cmp r0,r1
    jeq if_os_read_float_31
-   ldi idx,-10
-   ldx r0,[fp,idx]
+   mov -10,idx
+   mov [fp,idx],r0
    push r0
    pop r0
    jmp ret_os_read_float
 if_os_read_float_31:
 while_os_read_float_38:
-   ldi idx,0
-   ldx r0,[fp,idx]
+   clr idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,10
+   mov 10,r0
    push r0
    pop r1
    pop r0
@@ -987,10 +992,10 @@ while_os_read_float_38:
 cond_None_40:
    mov r2,r0
    push r0
-   ldi idx,0
-   ldx r0,[fp,idx]
+   clr idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,101
+   mov 101,r0
    push r0
    pop r1
    pop r0
@@ -1017,14 +1022,14 @@ cond_os_read_float_42:
    clr r1
    cmp r0,r1
    jeq while_os_read_float_39
-   ldi idx,0
-   ldx r0,[fp,idx]
+   clr idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,46
+   mov 46,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jeq cond_os_read_float_45
    clr r2
@@ -1035,36 +1040,36 @@ cond_os_read_float_45:
    clr r1
    cmp r0,r1
    jeq if_os_read_float_43
-   ldi r0,1
-   ldi idx,-7
-   stx r0,[fp,idx]
+   mov 1,r0
+   mov -7,idx
+   mov r0,[fp,idx]
    call os_read_char
-   ldi idx,0
-   stx r0,[fp,idx]
+   clr idx
+   mov r0,[fp,idx]
    jmp while_os_read_float_38
 if_os_read_float_43:
-   ldi idx,0
-   ldx r0,[fp,idx]
+   clr idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,48
+   mov 48,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r1,r0
    jgt cond_None_48
    clr r2
 cond_None_48:
    mov r2,r0
    push r0
-   ldi idx,0
-   ldx r0,[fp,idx]
+   clr idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,57
+   mov 57,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jgt cond_None_50
    clr r2
@@ -1073,7 +1078,7 @@ cond_None_50:
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    clr r3
    cmp r0,r3
    jgt cond_os_read_float_52
@@ -1087,37 +1092,37 @@ cond_os_read_float_52:
    clr r1
    cmp r0,r1
    jeq if_os_read_float_46
-   ldi idx,-10
-   ldx r0,[fp,idx]
+   mov -10,idx
+   mov [fp,idx],r0
    push r0
    pop r0
    jmp ret_os_read_float
 if_os_read_float_46:
-   ldi idx,0
-   ldx r0,[fp,idx]
+   clr idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,48
+   mov 48,r0
    push r0
    pop r1
    pop r0
    sub r0,r1,r0
    push r0
    pop r0
-   ldi idx,-1
-   stx r0,[fp,idx]
-   ldi idx,-1
-   ldx r0,[fp,idx]
+   mov -1,idx
+   mov r0,[fp,idx]
+   mov -1,idx
+   mov [fp,idx],r0
    call int_dig_to_flt
-   ldi idx,-4
-   stx r0,[fp,idx]
-   ldi idx,-7
-   ldx r0,[fp,idx]
+   mov -4,idx
+   mov r0,[fp,idx]
+   mov -7,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,0
+   clr r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jeq cond_os_read_float_55
    clr r2
@@ -1128,72 +1133,72 @@ cond_os_read_float_55:
    clr r1
    cmp r0,r1
    jeq if_os_read_float_53
-   ldi idx,-8
-   ldx r0,[fp,idx]
+   mov -8,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,18688
+   mov 18688,r0
    push r0
    pop r1
    pop r0
    fmul r0,r1,r0
    push r0
    pop r0
-   ldi idx,-8
-   stx r0,[fp,idx]
+   mov -8,idx
+   mov r0,[fp,idx]
    jmp if_os_read_float_54
 if_os_read_float_53:
-   ldi idx,-4
-   ldx r0,[fp,idx]
+   mov -4,idx
+   mov [fp,idx],r0
    push r0
-   ldi idx,-9
-   ldx r0,[fp,idx]
+   mov -9,idx
+   mov [fp,idx],r0
    push r0
    pop r1
    pop r0
    fdiv r0,r1,r0
    push r0
    pop r0
-   ldi idx,-4
-   stx r0,[fp,idx]
-   ldi idx,-9
-   ldx r0,[fp,idx]
+   mov -4,idx
+   mov r0,[fp,idx]
+   mov -9,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,18688
+   mov 18688,r0
    push r0
    pop r1
    pop r0
    fmul r0,r1,r0
    push r0
    pop r0
-   ldi idx,-9
-   stx r0,[fp,idx]
+   mov -9,idx
+   mov r0,[fp,idx]
 if_os_read_float_54:
-   ldi idx,-8
-   ldx r0,[fp,idx]
+   mov -8,idx
+   mov [fp,idx],r0
    push r0
-   ldi idx,-4
-   ldx r0,[fp,idx]
+   mov -4,idx
+   mov [fp,idx],r0
    push r0
    pop r1
    pop r0
    fadd r0,r1,r0
    push r0
    pop r0
-   ldi idx,-8
-   stx r0,[fp,idx]
+   mov -8,idx
+   mov r0,[fp,idx]
    call os_read_char
-   ldi idx,0
-   stx r0,[fp,idx]
+   clr idx
+   mov r0,[fp,idx]
    jmp while_os_read_float_38
 while_os_read_float_39:
-   ldi idx,-6
-   ldx r0,[fp,idx]
+   mov -6,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,1
+   mov 1,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jeq cond_os_read_float_58
    clr r2
@@ -1204,11 +1209,11 @@ cond_os_read_float_58:
    clr r1
    cmp r0,r1
    jeq if_os_read_float_56
-   ldi idx,-8
-   ldx r0,[fp,idx]
+   mov -8,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,15360
-   ldi r1,0x8000
+   mov 15360,r0
+   mov 0x8000,r1
    or r0,r1,r0
    push r0
    pop r1
@@ -1216,17 +1221,17 @@ cond_os_read_float_58:
    fmul r0,r1,r0
    push r0
    pop r0
-   ldi idx,-8
-   stx r0,[fp,idx]
+   mov -8,idx
+   mov r0,[fp,idx]
 if_os_read_float_56:
-   ldi idx,0
-   ldx r0,[fp,idx]
+   clr idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,10
+   mov 10,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jeq cond_os_read_float_61
    clr r2
@@ -1237,26 +1242,26 @@ cond_os_read_float_61:
    clr r1
    cmp r0,r1
    jeq if_os_read_float_59
-   ldi idx,-8
-   ldx r0,[fp,idx]
+   mov -8,idx
+   mov [fp,idx],r0
    push r0
    pop r0
    jmp ret_os_read_float
 if_os_read_float_59:
-   ldi r0,0
-   ldi idx,-6
-   stx r0,[fp,idx]
+   clr r0
+   mov -6,idx
+   mov r0,[fp,idx]
    call os_read_char
-   ldi idx,0
-   stx r0,[fp,idx]
-   ldi idx,0
-   ldx r0,[fp,idx]
+   clr idx
+   mov r0,[fp,idx]
+   clr idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,45
+   mov 45,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jeq cond_os_read_float_64
    clr r2
@@ -1267,35 +1272,35 @@ cond_os_read_float_64:
    clr r1
    cmp r0,r1
    jeq if_os_read_float_62
-   ldi r0,1
-   ldi idx,-6
-   stx r0,[fp,idx]
+   mov 1,r0
+   mov -6,idx
+   mov r0,[fp,idx]
    call os_read_char
-   ldi idx,0
-   stx r0,[fp,idx]
+   clr idx
+   mov r0,[fp,idx]
 if_os_read_float_62:
-   ldi idx,0
-   ldx r0,[fp,idx]
+   clr idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,48
+   mov 48,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r1,r0
    jgt cond_None_67
    clr r2
 cond_None_67:
    mov r2,r0
    push r0
-   ldi idx,0
-   ldx r0,[fp,idx]
+   clr idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,57
+   mov 57,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jgt cond_None_69
    clr r2
@@ -1304,7 +1309,7 @@ cond_None_69:
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    clr r3
    cmp r0,r3
    jgt cond_os_read_float_71
@@ -1318,32 +1323,32 @@ cond_os_read_float_71:
    clr r1
    cmp r0,r1
    jeq if_os_read_float_65
-   ldi idx,-10
-   ldx r0,[fp,idx]
+   mov -10,idx
+   mov [fp,idx],r0
    push r0
    pop r0
    jmp ret_os_read_float
 if_os_read_float_65:
-   ldi idx,0
-   ldx r0,[fp,idx]
+   clr idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,48
+   mov 48,r0
    push r0
    pop r1
    pop r0
    sub r0,r1,r0
    push r0
    pop r0
-   ldi idx,-2
-   stx r0,[fp,idx]
-   ldi idx,-6
-   ldx r0,[fp,idx]
+   mov -2,idx
+   mov r0,[fp,idx]
+   mov -6,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,1
+   mov 1,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jeq cond_os_read_float_74
    clr r2
@@ -1354,28 +1359,28 @@ cond_os_read_float_74:
    clr r1
    cmp r0,r1
    jeq if_os_read_float_72
-   ldi r0,11878
-   ldi idx,-5
-   stx r0,[fp,idx]
+   mov 11878,r0
+   mov -5,idx
+   mov r0,[fp,idx]
    jmp if_os_read_float_73
 if_os_read_float_72:
-   ldi r0,18688
-   ldi idx,-5
-   stx r0,[fp,idx]
+   mov 18688,r0
+   mov -5,idx
+   mov r0,[fp,idx]
 if_os_read_float_73:
-   ldi r0,0
-   ldi idx,-3
-   stx r0,[fp,idx]
+   clr r0
+   mov -3,idx
+   mov r0,[fp,idx]
 for_os_read_float_75:
-   ldi idx,-3
-   ldx r0,[fp,idx]
+   mov -3,idx
+   mov [fp,idx],r0
    push r0
-   ldi idx,-2
-   ldx r0,[fp,idx]
+   mov -2,idx
+   mov [fp,idx],r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r1,r0
    jgt cond_os_read_float_78
    clr r2
@@ -1386,41 +1391,41 @@ cond_os_read_float_78:
    clr r1
    cmp r0,r1
    jeq for_os_read_float_77
-   ldi idx,-8
-   ldx r0,[fp,idx]
+   mov -8,idx
+   mov [fp,idx],r0
    push r0
-   ldi idx,-5
-   ldx r0,[fp,idx]
+   mov -5,idx
+   mov [fp,idx],r0
    push r0
    pop r1
    pop r0
    fmul r0,r1,r0
    push r0
    pop r0
-   ldi idx,-8
-   stx r0,[fp,idx]
+   mov -8,idx
+   mov r0,[fp,idx]
 for_os_read_float_76:
-   ldi idx,-3
-   ldx r0,[fp,idx]
+   mov -3,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,1
+   mov 1,r0
    push r0
    pop r1
    pop r0
    add r0,r1,r0
    push r0
    pop r0
-   ldi idx,-3
-   stx r0,[fp,idx]
+   mov -3,idx
+   mov r0,[fp,idx]
    jmp for_os_read_float_75
 for_os_read_float_77:
    call os_read_char
-   ldi idx,0
-   stx r0,[fp,idx]
-   ldi idx,0
-   ldx r0,[fp,idx]
+   clr idx
+   mov r0,[fp,idx]
+   clr idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,10
+   mov 10,r0
    push r0
    pop r1
    pop r0
@@ -1435,14 +1440,14 @@ cond_os_read_float_82:
    clr r1
    cmp r0,r1
    jeq if_os_read_float_80
-   ldi idx,-10
-   ldx r0,[fp,idx]
+   mov -10,idx
+   mov [fp,idx],r0
    push r0
    pop r0
    jmp ret_os_read_float
 if_os_read_float_80:
-   ldi idx,-8
-   ldx r0,[fp,idx]
+   mov -8,idx
+   mov [fp,idx],r0
    push r0
    pop r0
    jmp ret_os_read_float
@@ -1486,79 +1491,79 @@ ret_os_read_float:
 print_flt_dig:
    push lr              ; Save used registers
    push r1
-   ldi r1,9.0           ; Is val >= 9.0 ?
+   mov 9.0,r1           ; Is val >= 9.0 ?
    fcmp r0,r1
    jlt pfd_test_8
-   ldi r0,0x39
+   mov 0x39,r0
    call os_print_char   ; Display '9'
-   ldi r0,90.0          ; Return 90.0
+   mov 90.0,r0          ; Return 90.0
    jmp pfd_done
 pfd_test_8:
-   ldi r1,8.0           ; Is val >= 8.0 ?
+   mov 8.0,r1           ; Is val >= 8.0 ?
    fcmp r0,r1
    jlt pfd_test_7
-   ldi r0,0x38
+   mov 0x38,r0
    call os_print_char   ; Display '8'
-   ldi r0,80.0          ; Return 80.0
+   mov 80.0,r0          ; Return 80.0
    jmp pfd_done
 pfd_test_7:
-   ldi r1,7.0           ; Is val >= 7.0 ?
+   mov 7.0,r1           ; Is val >= 7.0 ?
    fcmp r0,r1
    jlt pfd_test_6
-   ldi r0,0x37
+   mov 0x37,r0
    call os_print_char   ; Display '7'
-   ldi r0,70.0          ; Return 70.0
+   mov 70.0,r0          ; Return 70.0
    jmp pfd_done
 pfd_test_6:
-   ldi r1,6.0           ; Is val >= 6.0 ?
+   mov 6.0,r1           ; Is val >= 6.0 ?
    fcmp r0,r1
    jlt pfd_test_5
-   ldi r0,0x36
+   mov 0x36,r0
    call os_print_char   ; Display '6'
-   ldi r0,60.0          ; Return 60.0
+   mov 60.0,r0          ; Return 60.0
    jmp pfd_done
 pfd_test_5:
-   ldi r1,5.0           ; Is val >= 5.0 ?
+   mov 5.0,r1           ; Is val >= 5.0 ?
    fcmp r0,r1
    jlt pfd_test_4
-   ldi r0,0x35
+   mov 0x35,r0
    call os_print_char   ; Display '5'
-   ldi r0,50.0          ; Return 50.0
+   mov 50.0,r0          ; Return 50.0
    jmp pfd_done
 pfd_test_4:
-   ldi r1,4.0           ; Is val >= 4.0 ?
+   mov 4.0,r1           ; Is val >= 4.0 ?
    fcmp r0,r1
    jlt pfd_test_3
-   ldi r0,0x34
+   mov 0x34,r0
    call os_print_char   ; Display '4'
-   ldi r0,40.0          ; Return 40.0
+   mov 40.0,r0          ; Return 40.0
    jmp pfd_done
 pfd_test_3:
-   ldi r1,3.0           ; Is val >= 3.0 ?
+   mov 3.0,r1           ; Is val >= 3.0 ?
    fcmp r0,r1
    jlt pfd_test_2
-   ldi r0,0x33
+   mov 0x33,r0
    call os_print_char   ; Display '3'
-   ldi r0,30.0          ; Return 30.0
+   mov 30.0,r0          ; Return 30.0
    jmp pfd_done
 pfd_test_2:
-   ldi r1,2.0           ; Is val >= 2.0 ?
+   mov 2.0,r1           ; Is val >= 2.0 ?
    fcmp r0,r1
    jlt pfd_test_1
-   ldi r0,0x32
+   mov 0x32,r0
    call os_print_char   ; Display '2'
-   ldi r0,20.0          ; Return 20.0
+   mov 20.0,r0          ; Return 20.0
    jmp pfd_done
 pfd_test_1:
-   ldi r1,1.0           ; Is val >= 1.0 ?
+   mov 1.0,r1           ; Is val >= 1.0 ?
    fcmp r0,r1
    jlt pfd_zero
-   ldi r0,0x31
+   mov 0x31,r0
    call os_print_char   ; Display '1'
-   ldi r0,10.0          ; Return 10.0
+   mov 10.0,r0          ; Return 10.0
    jmp pfd_done
 pfd_zero:
-   ldi r0,0x30
+   mov 0x30,r0
    call os_print_char   ; Display '0'
    clr r0               ; Return 0.0
 pfd_done:
@@ -1602,32 +1607,32 @@ os_print_float:
    push r0
    clr r0
    push r0
-   ldi idx,1
-   ldx r0,[fp,idx]
-   ldi idx,-5
-   stx r0,[fp,idx]
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
+   mov -5,idx
+   mov r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,32256
+   mov 32256,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jeq cond_None_121
    clr r2
 cond_None_121:
    mov r2,r0
    push r0
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,65024
+   mov 65024,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jeq cond_None_122
    clr r2
@@ -1636,7 +1641,7 @@ cond_None_122:
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    clr r3
    cmp r0,r3
    jgt cond_os_print_float_123
@@ -1650,37 +1655,37 @@ cond_os_print_float_123:
    clr r1
    cmp r0,r1
    jeq if_os_print_float_119
-   ldi r0,78
+   mov 78,r0
    call os_print_char
-   ldi r0,97
+   mov 97,r0
    call os_print_char
-   ldi r0,78
+   mov 78,r0
    call os_print_char
    clr r0
    jmp ret_os_print_float
 if_os_print_float_119:
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,31744
+   mov 31744,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jeq cond_None_126
    clr r2
 cond_None_126:
    mov r2,r0
    push r0
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,64512
+   mov 64512,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jeq cond_None_127
    clr r2
@@ -1689,7 +1694,7 @@ cond_None_127:
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    clr r3
    cmp r0,r3
    jgt cond_os_print_float_128
@@ -1703,14 +1708,14 @@ cond_os_print_float_128:
    clr r1
    cmp r0,r1
    jeq if_os_print_float_124
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,31744
+   mov 31744,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jeq cond_os_print_float_131
    clr r2
@@ -1721,44 +1726,44 @@ cond_os_print_float_131:
    clr r1
    cmp r0,r1
    jeq if_os_print_float_129
-   ldi r0,43
+   mov 43,r0
    call os_print_char
    jmp if_os_print_float_130
 if_os_print_float_129:
-   ldi r0,45
+   mov 45,r0
    call os_print_char
 if_os_print_float_130:
-   ldi r0,73
+   mov 73,r0
    call os_print_char
-   ldi r0,110
+   mov 110,r0
    call os_print_char
-   ldi r0,102
+   mov 102,r0
    call os_print_char
    clr r0
    jmp ret_os_print_float
 if_os_print_float_124:
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,0
+   clr r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jeq cond_None_134
    clr r2
 cond_None_134:
    mov r2,r0
    push r0
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,32768
+   mov 32768,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jeq cond_None_135
    clr r2
@@ -1767,7 +1772,7 @@ cond_None_135:
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    clr r3
    cmp r0,r3
    jgt cond_os_print_float_136
@@ -1781,30 +1786,30 @@ cond_os_print_float_136:
    clr r1
    cmp r0,r1
    jeq if_os_print_float_132
-   ldi r0,48
+   mov 48,r0
    call os_print_char
-   ldi r0,46
+   mov 46,r0
    call os_print_char
-   ldi r0,48
+   mov 48,r0
    call os_print_char
    clr r0
    jmp ret_os_print_float
 if_os_print_float_132:
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,0
+   clr r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    xor r0,r1,r3
-   ldi r4,0x8000
+   mov 0x8000,r4
    and r3,r4,r3
    jnz cond_os_print_float_139_2
    and r0,r4,r3
    jz cond_os_print_float_139_2
-   ldi r4,0x7fff
+   mov 0x7fff,r4
    and r0,r4,r3
    and r1,r4,r0
    mov r3,r1
@@ -1819,13 +1824,13 @@ cond_os_print_float_139:
    clr r1
    cmp r0,r1
    jeq if_os_print_float_137
-   ldi r0,45
+   mov 45,r0
    call os_print_char
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,15360
-   ldi r1,0x8000
+   mov 15360,r0
+   mov 0x8000,r1
    or r0,r1,r0
    push r0
    pop r1
@@ -1833,25 +1838,25 @@ cond_os_print_float_139:
    fmul r0,r1,r0
    push r0
    pop r0
-   ldi idx,1
-   stx r0,[fp,idx]
+   mov 1,idx
+   mov r0,[fp,idx]
 if_os_print_float_137:
 while_os_print_float_141:
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,15360
+   mov 15360,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    xor r0,r1,r3
-   ldi r4,0x8000
+   mov 0x8000,r4
    and r3,r4,r3
    jnz cond_os_print_float_143_2
    and r0,r4,r3
    jz cond_os_print_float_143_2
-   ldi r4,0x7fff
+   mov 0x7fff,r4
    and r0,r4,r3
    and r1,r4,r0
    mov r3,r1
@@ -1866,48 +1871,48 @@ cond_os_print_float_143:
    clr r1
    cmp r0,r1
    jeq while_os_print_float_142
-   ldi idx,-4
-   ldx r0,[fp,idx]
+   mov -4,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,1
+   mov 1,r0
    push r0
    pop r1
    pop r0
    sub r0,r1,r0
    push r0
    pop r0
-   ldi idx,-4
-   stx r0,[fp,idx]
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov -4,idx
+   mov r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,18688
+   mov 18688,r0
    push r0
    pop r1
    pop r0
    fmul r0,r1,r0
    push r0
    pop r0
-   ldi idx,1
-   stx r0,[fp,idx]
+   mov 1,idx
+   mov r0,[fp,idx]
    jmp while_os_print_float_141
 while_os_print_float_142:
 while_os_print_float_145:
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,18688
+   mov 18688,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    xor r0,r1,r3
-   ldi r4,0x8000
+   mov 0x8000,r4
    and r3,r4,r3
    jnz cond_os_print_float_147_2
    and r0,r4,r3
    jz cond_os_print_float_147_2
-   ldi r4,0x7fff
+   mov 0x7fff,r4
    and r0,r4,r3
    and r1,r4,r0
    mov r3,r1
@@ -1922,56 +1927,56 @@ cond_os_print_float_147:
    clr r1
    cmp r0,r1
    jeq while_os_print_float_146
-   ldi idx,-4
-   ldx r0,[fp,idx]
+   mov -4,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,1
+   mov 1,r0
    push r0
    pop r1
    pop r0
    add r0,r1,r0
    push r0
    pop r0
-   ldi idx,-4
-   stx r0,[fp,idx]
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov -4,idx
+   mov r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,18688
+   mov 18688,r0
    push r0
    pop r1
    pop r0
    fdiv r0,r1,r0
    push r0
    pop r0
-   ldi idx,1
-   stx r0,[fp,idx]
+   mov 1,idx
+   mov r0,[fp,idx]
    jmp while_os_print_float_145
 while_os_print_float_146:
-   ldi idx,-4
-   ldx r0,[fp,idx]
+   mov -4,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,3
+   mov 3,r0
    not r0,r0
    inc r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r1,r0
    jgt cond_None_151
    clr r2
 cond_None_151:
    mov r2,r0
    push r0
-   ldi idx,-4
-   ldx r0,[fp,idx]
+   mov -4,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,3
+   mov 3,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jgt cond_None_153
    clr r2
@@ -1980,7 +1985,7 @@ cond_None_153:
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    clr r3
    cmp r0,r3
    jgt cond_os_print_float_155
@@ -1994,25 +1999,25 @@ cond_os_print_float_155:
    clr r1
    cmp r0,r1
    jeq if_os_print_float_149
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    call print_flt_dig
-   ldi idx,-3
-   stx r0,[fp,idx]
-   ldi r0,46
+   mov -3,idx
+   mov r0,[fp,idx]
+   mov 46,r0
    call os_print_char
-   ldi r0,0
-   ldi idx,-2
-   stx r0,[fp,idx]
+   clr r0
+   mov -2,idx
+   mov r0,[fp,idx]
 for_os_print_float_156:
-   ldi idx,-2
-   ldx r0,[fp,idx]
+   mov -2,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,3
+   mov 3,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r1,r0
    jgt cond_os_print_float_159
    clr r2
@@ -2023,49 +2028,49 @@ cond_os_print_float_159:
    clr r1
    cmp r0,r1
    jeq for_os_print_float_158
-   ldi r0,18688
+   mov 18688,r0
    push r0
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    push r0
    pop r1
    pop r0
    fmul r0,r1,r0
    push r0
-   ldi idx,-3
-   ldx r0,[fp,idx]
+   mov -3,idx
+   mov [fp,idx],r0
    push r0
    pop r1
    pop r0
    fsub r0,r1,r0
    push r0
    pop r0
-   ldi idx,1
-   stx r0,[fp,idx]
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    call print_flt_dig
-   ldi idx,-3
-   stx r0,[fp,idx]
+   mov -3,idx
+   mov r0,[fp,idx]
 for_os_print_float_157:
-   ldi idx,-2
-   ldx r0,[fp,idx]
+   mov -2,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,1
+   mov 1,r0
    push r0
    pop r1
    pop r0
    add r0,r1,r0
    push r0
    pop r0
-   ldi idx,-2
-   stx r0,[fp,idx]
+   mov -2,idx
+   mov r0,[fp,idx]
    jmp for_os_print_float_156
 for_os_print_float_158:
-   ldi idx,-4
-   ldx r0,[fp,idx]
+   mov -4,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,0
+   clr r0
    push r0
    pop r1
    pop r0
@@ -2080,22 +2085,22 @@ cond_os_print_float_163:
    clr r1
    cmp r0,r1
    jeq if_os_print_float_161
-   ldi r0,101
+   mov 101,r0
    call os_print_char
-   ldi idx,-4
-   ldx r0,[fp,idx]
+   mov -4,idx
+   mov [fp,idx],r0
    call os_print_int
 if_os_print_float_161:
    jmp if_os_print_float_150
 if_os_print_float_149:
-   ldi idx,-4
-   ldx r0,[fp,idx]
+   mov -4,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,0
+   clr r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jge cond_os_print_float_166
    clr r2
@@ -2106,14 +2111,14 @@ cond_os_print_float_166:
    clr r1
    cmp r0,r1
    jeq if_os_print_float_164
-   ldi idx,-4
-   ldx r0,[fp,idx]
+   mov -4,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,0
+   clr r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jeq cond_os_print_float_170
    clr r2
@@ -2124,52 +2129,52 @@ cond_os_print_float_170:
    clr r1
    cmp r0,r1
    jeq if_os_print_float_168
-   ldi r0,5
-   ldi idx,0
-   stx r0,[fp,idx]
-   ldi r0,1
-   ldi idx,-1
-   stx r0,[fp,idx]
+   mov 5,r0
+   clr idx
+   mov r0,[fp,idx]
+   mov 1,r0
+   mov -1,idx
+   mov r0,[fp,idx]
    jmp if_os_print_float_169
 if_os_print_float_168:
-   ldi idx,-4
-   ldx r0,[fp,idx]
+   mov -4,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,4
+   mov 4,r0
    push r0
    pop r1
    pop r0
    add r0,r1,r0
    push r0
    pop r0
-   ldi idx,0
-   stx r0,[fp,idx]
-   ldi idx,0
-   ldx r0,[fp,idx]
+   clr idx
+   mov r0,[fp,idx]
+   clr idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,3
+   mov 3,r0
    push r0
    pop r1
    pop r0
    sub r0,r1,r0
    push r0
    pop r0
-   ldi idx,-1
-   stx r0,[fp,idx]
+   mov -1,idx
+   mov r0,[fp,idx]
 if_os_print_float_169:
-   ldi r0,0
-   ldi idx,-2
-   stx r0,[fp,idx]
+   clr r0
+   mov -2,idx
+   mov r0,[fp,idx]
 for_os_print_float_171:
-   ldi idx,-2
-   ldx r0,[fp,idx]
+   mov -2,idx
+   mov [fp,idx],r0
    push r0
-   ldi idx,0
-   ldx r0,[fp,idx]
+   clr idx
+   mov [fp,idx],r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r1,r0
    jgt cond_os_print_float_174
    clr r2
@@ -2180,15 +2185,15 @@ cond_os_print_float_174:
    clr r1
    cmp r0,r1
    jeq for_os_print_float_173
-   ldi idx,-2
-   ldx r0,[fp,idx]
+   mov -2,idx
+   mov [fp,idx],r0
    push r0
-   ldi idx,-1
-   ldx r0,[fp,idx]
+   mov -1,idx
+   mov [fp,idx],r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jeq cond_os_print_float_178
    clr r2
@@ -2199,72 +2204,72 @@ cond_os_print_float_178:
    clr r1
    cmp r0,r1
    jeq if_os_print_float_176
-   ldi r0,46
+   mov 46,r0
    call os_print_char
    jmp for_os_print_float_172
 if_os_print_float_176:
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    call print_flt_dig
-   ldi idx,-3
-   stx r0,[fp,idx]
-   ldi r0,18688
+   mov -3,idx
+   mov r0,[fp,idx]
+   mov 18688,r0
    push r0
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    push r0
    pop r1
    pop r0
    fmul r0,r1,r0
    push r0
-   ldi idx,-3
-   ldx r0,[fp,idx]
+   mov -3,idx
+   mov [fp,idx],r0
    push r0
    pop r1
    pop r0
    fsub r0,r1,r0
    push r0
    pop r0
-   ldi idx,1
-   stx r0,[fp,idx]
+   mov 1,idx
+   mov r0,[fp,idx]
 for_os_print_float_172:
-   ldi idx,-2
-   ldx r0,[fp,idx]
+   mov -2,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,1
+   mov 1,r0
    push r0
    pop r1
    pop r0
    add r0,r1,r0
    push r0
    pop r0
-   ldi idx,-2
-   stx r0,[fp,idx]
+   mov -2,idx
+   mov r0,[fp,idx]
    jmp for_os_print_float_171
 for_os_print_float_173:
    jmp if_os_print_float_165
 if_os_print_float_164:
-   ldi r0,48
+   mov 48,r0
    call os_print_char
-   ldi r0,46
+   mov 46,r0
    call os_print_char
-   ldi r0,1
+   mov 1,r0
    not r0,r0
    inc r0
    push r0
    pop r0
-   ldi idx,-2
-   stx r0,[fp,idx]
+   mov -2,idx
+   mov r0,[fp,idx]
 for_os_print_float_179:
-   ldi idx,-2
-   ldx r0,[fp,idx]
+   mov -2,idx
+   mov [fp,idx],r0
    push r0
-   ldi idx,-4
-   ldx r0,[fp,idx]
+   mov -4,idx
+   mov [fp,idx],r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r0,r1
    jgt cond_os_print_float_182
    clr r2
@@ -2275,35 +2280,35 @@ cond_os_print_float_182:
    clr r1
    cmp r0,r1
    jeq for_os_print_float_181
-   ldi r0,48
+   mov 48,r0
    call os_print_char
 for_os_print_float_180:
-   ldi idx,-2
-   ldx r0,[fp,idx]
+   mov -2,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,1
+   mov 1,r0
    push r0
    pop r1
    pop r0
    sub r0,r1,r0
    push r0
    pop r0
-   ldi idx,-2
-   stx r0,[fp,idx]
+   mov -2,idx
+   mov r0,[fp,idx]
    jmp for_os_print_float_179
 for_os_print_float_181:
-   ldi r0,0
-   ldi idx,-2
-   stx r0,[fp,idx]
+   clr r0
+   mov -2,idx
+   mov r0,[fp,idx]
 for_os_print_float_184:
-   ldi idx,-2
-   ldx r0,[fp,idx]
+   mov -2,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,4
+   mov 4,r0
    push r0
    pop r1
    pop r0
-   ldi r2,1
+   mov 1,r2
    cmp r1,r0
    jgt cond_os_print_float_187
    clr r2
@@ -2314,43 +2319,43 @@ cond_os_print_float_187:
    clr r1
    cmp r0,r1
    jeq for_os_print_float_186
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    call print_flt_dig
-   ldi idx,-3
-   stx r0,[fp,idx]
-   ldi r0,18688
+   mov -3,idx
+   mov r0,[fp,idx]
+   mov 18688,r0
    push r0
-   ldi idx,1
-   ldx r0,[fp,idx]
+   mov 1,idx
+   mov [fp,idx],r0
    push r0
    pop r1
    pop r0
    fmul r0,r1,r0
    push r0
-   ldi idx,-3
-   ldx r0,[fp,idx]
+   mov -3,idx
+   mov [fp,idx],r0
    push r0
    pop r1
    pop r0
    fsub r0,r1,r0
    push r0
    pop r0
-   ldi idx,1
-   stx r0,[fp,idx]
+   mov 1,idx
+   mov r0,[fp,idx]
 for_os_print_float_185:
-   ldi idx,-2
-   ldx r0,[fp,idx]
+   mov -2,idx
+   mov [fp,idx],r0
    push r0
-   ldi r0,1
+   mov 1,r0
    push r0
    pop r1
    pop r0
    add r0,r1,r0
    push r0
    pop r0
-   ldi idx,-2
-   stx r0,[fp,idx]
+   mov -2,idx
+   mov r0,[fp,idx]
    jmp for_os_print_float_184
 for_os_print_float_186:
 if_os_print_float_165:
@@ -2392,14 +2397,93 @@ os_exit:
    end                  ; No error - Just stop the program
 
 disp_err:
-   ldi r1,OUT_1         ; Display the Error Code
-   ldi r2,IO_START      ; NB: Don't call 'os_disp_out' as we may be in a 'Stack Violation'
+   mov OUT_1,r1         ; Display the Error Code
+   mov IO_START,r2      ; NB: Don't call 'os_disp_out' as we may be in a 'Stack Violation'
    add r1,r2,r1         ;     and so we don't want more PUSHing or POPing
-   st r0,[r1]
+   mov r0,[r1]
 
-   ldi r0,1             ; Turn the ERR LED on
-   ldi r1,ERR
-   st r0,[r1]
+   mov 1,r0             ; Turn the ERR LED on
+   mov ERR,r1
+   mov r0,[r1]
 
    end                  ; Stop the program
+
+;--------------------------------------------------------------------
+; BIOS - Play a tune on the Sound Card
+;
+; Location: ROM addr 0x1ac0
+;
+; Inputs - R0 = Address of the 'Notes & Durations' array
+;          R1 = Address of the 'Pauses between starting notes' array
+;--------------------------------------------------------------------
+
+.= 0x1ac0
+
+os_play_tune:
+   push r0              ; Save used registers
+   push r1
+   push r2
+   push r3
+   push r4
+   push idx
+   push lr
+
+   inc r1               ; r1 points to 1st pause
+   inc r1
+
+   inc r0               ; r3 = number of notes
+   mov [r0],r3
+
+   mov r0,r2            ; r2 points to 1st note
+   inc r2
+
+   mov SND,r4           ; r4 = Sound Card address
+   clr idx              ; idx = note count = 0
+
+pt_next_note:
+   mov [r2,idx],r0      ; Play the next note
+   mov r0,[r4]
+   mov [r1,idx],r0      ; Wait until pause is over
+   call os_delay
+
+   inc idx              ; Played all notes ?
+   cmp idx,r3
+   jlt pt_next_note
+
+   pop lr               ; Retrieve used registers
+   pop idx
+   pop r4
+   pop r3
+   pop r2
+   pop r1
+   pop r0
+   ret
+
+;----------------------------
+; BIOS - Delay
+;
+; Location: ROM addr 0x1af0
+;
+; Input: R0 - Delay duration
+;----------------------------
+
+.= 0x1af0
+
+os_delay:
+   push r0              ; Save used registers
+   push r1
+
+   clr r1
+   cmp r0,r1            ; If 'duration' = 0 we're done
+   jeq d_done
+
+d_wait:
+   dec r0               ; Keep decrementing 'duration'
+   cmp r0,r1            ; until it becomes 0
+   jne d_wait
+
+d_done:
+   pop r1               ; Retrieve used registers
+   pop r0
+   ret
 

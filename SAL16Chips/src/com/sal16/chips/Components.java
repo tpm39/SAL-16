@@ -24,18 +24,19 @@ public class Components extends Library {
      */
     public Components() {
         tools = Arrays.asList(
-                new AddTool(new Clock()),
-                new AddTool(new Register()),
-                new AddTool(new ProgramCounter()),
-                new AddTool(new StackPointer()),
-                new AddTool(new ALU()),
-                new AddTool(new MathsUnit()),
-                new AddTool(new FPU()),
-                new AddTool(new FPScrPos()),
-                new AddTool(new Demux_3_to_8()),
                 new AddTool(new AddressDecoder()),
+                new AddTool(new ALU()),
+                new AddTool(new Beeper()),
+                new AddTool(new Clock()),
+                new AddTool(new Demux_3_to_8()),
+                new AddTool(new FPScrPos()),
+                new AddTool(new FPU()),
                 new AddTool(new JumpDecoder()),
-                new AddTool(new SetToOne()));
+                new AddTool(new MathsUnit()),
+                new AddTool(new ProgramCounter()),
+                new AddTool(new Register()),
+                new AddTool(new SetToOne()),
+                new AddTool(new StackPointer()));
     }
 
     /** Returns the name of the library that the user will see. */

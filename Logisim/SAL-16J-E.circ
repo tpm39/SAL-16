@@ -1423,7 +1423,7 @@
       <circ-port height="8" pin="930,590" width="8" x="186" y="66"/>
       <circ-port height="8" pin="130,850" width="8" x="186" y="386"/>
       <circ-port height="10" pin="130,780" width="10" x="45" y="385"/>
-      <circ-port height="10" pin="2590,1140" width="10" x="45" y="405"/>
+      <circ-port height="10" pin="2630,1140" width="10" x="45" y="405"/>
       <circ-anchor facing="east" height="6" width="6" x="187" y="67"/>
     </appear>
     <comp lib="0" loc="(1240,200)" name="Tunnel">
@@ -1705,18 +1705,23 @@
       <a name="labelloc" val="north"/>
     </comp>
     <comp lib="0" loc="(2370,670)" name="Constant"/>
-    <comp lib="0" loc="(2480,880)" name="Constant">
+    <comp lib="0" loc="(2520,650)" name="Constant">
+      <a name="facing" val="south"/>
+      <a name="value" val="0xb"/>
+      <a name="width" val="4"/>
+    </comp>
+    <comp lib="0" loc="(2520,880)" name="Constant">
       <a name="facing" val="south"/>
       <a name="value" val="0x0"/>
       <a name="width" val="4"/>
     </comp>
-    <comp lib="0" loc="(2590,1140)" name="Pin">
+    <comp lib="0" loc="(2630,1140)" name="Pin">
       <a name="facing" val="north"/>
       <a name="label" val="ERR"/>
       <a name="labelloc" val="south"/>
       <a name="type" val="output"/>
     </comp>
-    <comp lib="0" loc="(2600,980)" name="Splitter">
+    <comp lib="0" loc="(2640,980)" name="Splitter">
       <a name="appear" val="right"/>
       <a name="bit10" val="1"/>
       <a name="bit11" val="1"/>
@@ -1910,138 +1915,140 @@
       <a name="addrWidth" val="15"/>
       <a name="contents">addr/data: 15 16
 compressed
-eJy1HUmipapuziocv5E0Ki7Hdv9L+IQ2gaCeqvqDV+/qoUlCegKOwzGO46DG0QzHZuxwSjMO0rp3
-x2CF+1EOdlNmgDfXYKDdtrq/tQzdpIBfrB9Eqf/8n8M+jvEPGf4Qu4pvrvj/2/23uOapgXSjDlLD
-GxlaoDeqaaObNqZpMzVtZtRGK7X+V+Dx79QEzW4Mkpo8UhreeRwA4GNVkVyHuO/bvbWzI9fu3m4e
-odX9tEFzN7DQQDTfTyn31zkqT+HZ4e5QXSyQHubz7RTM5N+5fyz8cwzL4mn9XwBB2CHMuaVlCC19
-oykCKwqwvrl0y+n+pwLoCoZJcMAaTHZwnQ5uYqHlf3EkE4bwcIaWfs75PzfdDDNN8I8ZG3p59gDe
-cbBvCRKHewDs3B0BrtMKBV3P8chg7fBoyuPhoRTabo7QU1o5aOYXQ2+bBywQUCA8rCe0hF+lLWB7
-iEUFbMQygLW7dVV2s+JUc4bjBu4ZCQiXZeZMBAI+DwsFj3oEekFXP8U55WWQegUcxjywcK8UHikv
-hRdYIzOqeR4Lf/VWQwTuBVpJ4E0PgMPDzS/8WijoeNz34eh+ZbCWM0B0iM29z3SQ2+H+SjwhQRjU
-mRtI12DdB+naOBzDYNIh5BbRzS2HPDQsqhPD2WFrR9cBWiTeXMLj5WQV+B2mWNx8Q1qNNQzhx4Ie
-x+D42hTIdz04zRNl0SgsWoLlDCujuHkihSUAND+S1jN6YGwFtNFRV1jXRMgI5g7QOZrLa3HEdyTT
-oPJAZ4rN94c1CYIiHWHMIi5pJvcXDLQeUZe4H/SwnaPHFch2WxGQvs4whCe9FweQKRHWRI16OHWm
-kHJqyBEN1s/NXkZT4xVX6A4/hxZZuIa+cDkSCqSMPvKj8fhuQDztYDVBNyT28iypJo9KhF1I5QiA
-2FFNe2DDa7QZjWkViJfcY+AlCSj4R89V8CjCox/JDZxY6iemUTZi/EUfOnIWjQwMkvBwMhnWzwow
-c44owAQDwwSiZgK13hHyNQwigAcoI0ThVNshMCNsd2aEMqIjyr7EEbepMMInLZvJIr2FCLp1zbIN
-MJybG9NYOwbW1XIP3gVucynfZnxs48dZHtvcfpz5uY0fZ3pqo0c/jnlu48dRj22kH2d8bgPj6AO3
-OYoIetquySQEgdKZ5TzzZekzsCRH8tVE/mt4/OtzOzfB+tRSGmD2ebDX5hWce5gGbXebH9wajsIh
-dXnRAJYFrRj+Giffyfkiscfom4ehR1ChHogkpiA0ckD+jV6U1zLCqASQb+ZFD7ez2k0iI0xbBPAL
-CHpkQZBjcvX02oDQDrKKBBuDBwyyaRG0JcYDtQV/RSSdCB12AII85v7igQ77HWkwiwLgElcT/GhT
-oBcR+q0GKMQTY7Z8+jiRIaYkSIPM0+soZzMKbSy804YMg3baIREhPsIAb8xgDg1sW7HaVU0pKlYz
-2aCl0QU/utQQHETBWDlWC++8qYsL8iPPGfUPeM7oH3nOGMJz8PiF54z5A57TDUTXqDDZw4g3VjV3
-wB9o7czbmdocuM1aaCRgng6JIkuaZRpaEiEUUzt7xvEtWQNQnfUqXNYtXhkqdhOJJdwLcEsj5GWw
-wE7LQChYhtRlSMGgjfs5+VjbBW/ACtOhMSyBxk8hOtCMzUj2mxx45YwpKF8MgDm/GQBz7RkSIiUH
-KJxo1GBBf1itRuS2N2Adcl+AncBzbYClEgPr+GDN/DvRM6jZwWtAnNQ3oZ608imQ30HAko1AKMpt
-avUKo9yeSA2DTBxfVMrN2xIROzi9hpQbPH7R9tN8JeWG9FdHuSW186DcsARfWPqIWAjZU1wxgprs
-8ay4Urt187DNc5xmH4oimtY7uX/kRy+Xnj1PDOHZ6IeL1Q9kuR0Iu/kG6nl0FdFOaf9NdiuQOV1T
-a7Ih4xzc9mkzrEprvIvahRLZ+Ul8dN2M8+Pa1fx2n4TfEGtifmNUhyi/q//qYC4++pZHjvxiJGJz
-tB8iPR/WOZggigdNNas7iGQkhQUOnaYtgbQevtPoI6DcSR8gCRZ3Gqacd3OdXMwAgR/pZFaYaYk2
-PnYyM51pjp1E7DTN0GmmM+kUmsZOUzXTDAGDnmgnZfBMwpiq0+J1kymdHIqTHCl4CncSrtMJnTSZ
-ydx2DIYxdhqrmayPH5UgnU46kw8vcad1gU6SrFPyBUInr5vKzz57HZk2x/zLf5GrcnAaE9NMcOrb
-/XWE6phTRt8O6SFRXkcpWy6s61n7Np87Y1zoMHcapm/J5+v4zbzM94bNyxw9gTfzsvhsrrkIw8+S
-8gr+NRFtkNsiK9QcMy4HDy7yZRd51/o4D5O885sfBu88LLo2oFVoRYK5GTpchULCP34xC8ti2hXM
-aPZXcJnMJ19scdQehdoRyeP7KfhTeGUM0YHDXK3bXIlWXqiWld/4eLH6lY+DkD5TYeWo8MDHy6Yw
-H8PjJz72boMeCT3URahFfn3hYx5Wq6B3+GnfLWxijE6vLqccdhselX+EVn67wb/eVzeh0bCDV7zQ
-5ZyY6JjB7FYi80FApYG2DjJqcWgdFZkdKymacKVGXQTUBwZ1yB0DjiKg7lPJfdTjGtux0QBs1Gt1
-8hoP6kc1jtjI+FFHdsQo1+bgFHFtj0AiLQE/DJcAwZQSmFLmxkwCj5FSoqZU2XawUyOFLJPYZWNC
-5uRxYgitwuPUkTzVwp0wXtMsiUQePVoxylZhY38b8YBscGYtZz8bFtBPegeGWX+0n3Yj9hMev+id
-VWG6BRGdFXXliyZKiinHLzi8uUSLYCWFmE6n5GSo8efX0ZKVdJGDHLioqYhACr06rSSajWqSkh7z
-RBCECAnj5yiTS+1cmMEO1fIDp69p/CPkKmcu/mnM/armkEwm6jbPF5dYntR4vMODnSAn2KuLMb6o
-wPVaWf5nVQ9ednN+si7r7EMIFFqOObV8I7qvy8XiaZ5XUOCQlaZYRMPhjRZHQDAyIyp2qiboaph1
-/aZT12thJJNkgiszW6/BVx2yL7WKCO/P+V2sqGwTa87Ltu/bayUp/WVXdFsbzOYyLpR2Xq0uMvPm
-q0lU1dAM2tOaraDwa+PIuo3f1mbz6oDAylKjcSg4j+RCPsXqN4xfmbqVMFGx86Y/YoLd3L6lKt5R
-5fEw3JQ58ZGbakehoZ/o+ClUjVSGYHMR0/JfXTxC0kwDSjNBn5BdmP6rjKSECr5puKGJGebBxsK8
-1ZhQsAbgmVA5B8/Ct5R6mdL+OanD2KDCakHsW/JcS6zDG0rxChSphfoaNco911DGRz+RHP3rkGxS
-o1rCgrq/Nkjb2LD3771K9+6Ayo5QI6UgM5PjHPjNy20iiMXpFpUBShAIBaUjHoLAz3sogLmgrC53
-F6bK3SnEm2qc7qAmtjCO4zkFiUwPwjWqBOcsPQ/UiSD1rUDBz5BzQGHC5xxQ9jzasJi1qwijldvT
-bKTNtbsApZzs8pWkn4LMYvzVuJ2vmRIuUS8wIDuX5uinSdR4HChN4h8/pEnUeG41NZfMes7daTMQ
-CPKgIlbWgmDNSPcrazXMW/zFoXSvXyy+kjZvjDZWpZ4oEpADme4ZP8djKxePMZvOOBJinQ8vTnSk
-2vFiszhVgIGIodkgvQ4wlDRnC5cga1+7Zt0YJK1biMmUnBr+55xkJZedIc1XH+UQDbWpUfT87SJC
-fo5fLb8as0t/MsIiPMHm5w0Ur39FMSzSmyKmcBDKdIWymxOcFUqitc3Lth9BuYO6B32Ifzt0/k3v
-m/U1vJ1hjoM0FUY7kDcAJfwD8JSedof6+cO18z+cUyoqVPKUCTVcCxjqQaV9wM8PLxrAbowf6MTy
-G1SyNvjxwzj9R5sCfqKL36UjfoFkCD8lWfyCEQ34dVBrwddHD/wEogMMBgr/ZBAvOZ9hlSL1bYbO
-mAY6D9jSIXxwGCKI1pHNDV8K3ZWaz4r6qoC/mPxbgs05NitUlaIRloKkUZinAvDHsaKezjWBGYG7
-MmNFt0pZ6WsuszfYYbH5ZxZTWwRxIrxBOQK33+fUPizUpc/1WVZE5iUsK2rfK0QEOp1gftYF6qKI
-RCHuI3J7RERG/BERQYWCIHIjRMRSHbMwvFAEHBCn59kiLKv0jC963D9Q7hdKu+CT4f5BabwTKfJO
-JO+FqtyO+KNdL/SfV9IWyw7m1ts6f+pKyXHseQYyVc/KqkMvESPBxSeTCL4Pdd5yH3YeXHF3ts4P
-DjZZP6wu9VR6n56zfand4W34VLnpo0hegHbT7RAHSkOMtii/hTMpR2rl+uaKmip1tWJPY6W+LHbR
-utGHvvZP0Ye5FlGmtZiitnEn+fCdppuVGdl8ZeMNmhPyJSSRvDZOe+3AiuzAfkoDHDmrjge1fC0Q
-l1De64WZ4wuRXpC6xOUjE/rIC5HM9DeYcYRmtjWDwfnIKKtlWKkuIilLsZLpySYKF5qwiXOP514A
-1kYzfDhE6kT3JrBi2Y8faSer8gcbXUtJICmjryGdLaik3Wv2KMNulj3ahCLjSb5/T2FtrSxWKYkX
-3rUIBX0vrTL5DMqKRzrj8RBp/kOOUSfyqHJq4v2MWzbcNjpz0MQfuvSm2dnxIxwdcvbZiODMwcFY
-6YUcNlGthbT4ak0Yqrh/erOwNGf2/K7kXUzKRVz2GlFFv5q0DQdtwyFNGAUoAm27DmJJSUVMe4ez
-/JgWbB0cMy3nodU0XdnBSrEUbRBOL+QGDt0NkipwVBSWTfk8X/zrSH/JsKMqLmkn8IBXOOlV1r1G
-RrD+YYuCsCAINYRrRiG7uLTBVlAwYkeuvR89Lk7QehaaOzcTiCvhZJdXWO4vf5jHZuUHTpuBg3ez
-JO2cvxLbBc1X2vlzbp7DbR50zo397kjdeMCN0ci6HjkcxXSkZUZW9cghHYwai6k/socZ8PMc5Jeu
-oZfzHtqFJf4yBJHKe1NLkOQxs0xKfuuU6wWGEuEocuavct7VS0j4FaTDJ5hRxtgfHMv87znShbdO
-3fro3lBW9WeO/cl8H51BBi40AWbxI2/bOGJWTZAKZo4YYZM5RJnD/+pRYOYQzBxo+BAfaEeXAr1/
-F8bTebwErkDU4PQeDRwqwXXgmkwciFo2KS5zRJbUsB6X2aT74YjMFMAYQ+KH6ODntELIy8eSHIX3
-I6Q/T14pAEgH562JqEmX8RRoa8I9kq2J6PAscopu9aKc+w3j7nKMWNKdCuEaO+pao4L9WeQcJy0Z
-gEUtoImgIMnZNj2kl6lKKfkt5KoDGW5hSCts8qUG/nRV9Dsc1Kezlru3MH7fZJkOcVkb9yOWCQrp
-hgkanfFIsBPBZTak0eUbHdrmRk5BLQvUzIa+1+GodcNFGHHmY4z3SKjF+gPL04qm8L2vwU8BvUTV
-a8i9pthLxF52zYOVOVMP4Z+QBS9cm2PZQ3QpA4oqIu3A3njKOK2FG/GU2e/UVyQo0/KfDDXcQMee
-qaFqGvpeAlMjzXNSaohu7zBuzD30KJN4RjSUuQtl4AkoI2rK+I0u1OjyjSrKWKmGmmd0u/pWUSqJ
-1LtQSdOWjjICz6NaPtFp7ek8/hfKM6Kr6Uqq0ud7UKbIGpqF9VmkqCSgti39RtOY7TATk4WNyUAu
-C7s3CaeYDLRzPwvrs8zs8XuKH8HBMvjFHTG7PuJHhll7+KGMJ8FPcgk1cCtf8Iv3lnSyzAT8o5dl
-Lrk3wWaZ1/mq8myJ+iebZR5yllk8ZpmHnGVOZLvPivoqg7+OvSxzsTHQqpdlHnKWWaAs8+ZQu0iW
-OZrEVUrxmGXG9xn8xGKrZrLMDzsWq5lpe0jOPuxY7L0di9XUWWbkWjxmmXkhXpceInxWerUUEfGc
-Ls9C0WwtrZZFRDxmmQuni8csc+F+0eP+BMZ+RbfxKcv8dt6luhkJ8PjXeeQf8s0jfy1DrEJr09BN
-EmLG+ZAJZ7H8We500slf6BBzh3jGusSb5JcFm5OmMwo848DOeAkWx5TRFn0cMyZdHMuMAs14slT9
-IYfOU1X0cfzTPPu2sKcKmzz75o+TNXl2TclPgLYFaOa+D0JAUaNT2oyPDewvdQJTdxnPehkha1Xv
-AdCsG7cHQI50dositvNT5bDaTz0wewD1oW8+CcsVzqrt/lQ4q/YDjm4rvMfQ2wNgDnL8dGQh7QGI
-NqHKrCYWkXYPQFQvll62+UFAquJMtX8rzlT7OpE9gLpUp9kDqBP7zR6AYLYLmj0AqxRzpvlFg3F7
-AG9nmo98oDLtT/TY722kHY+0MKC87WeUPQChdrURsld7ADln/7AH8Ae7EMweQL+aj+NdvAewXTrv
-Lv4OCt4D2I4lFFDK6UP1ESKz92JyHWio8pyCixMjR/VnafNDvqTND/VXaXPwMJ1LvzmnzeTq03+b
-Nj+ml7T5Mf+UNj/mb2nz1WyAmnpLm8d2sy/Xfkubk8ZvaXPc+DVtThq/pc0pzM9p82P/p2lz75d7
-rqpy5ylZs81hf0nk7PmQsudJbkq1kUlVzSi93Umhi/JrL72NgwuPWCdN7yMl0U3T+zgqzyGe0/Qq
-JctESJf74EeTkf27nEIXNIU+9FLogqbQh14KXaAU+r6p4TqOyJ4hhX7Au/2YxUVS6EWFVSn0ughJ
-Wn5rs736NZycDf87RPgfbC86HegfUh7OcfZ52XiH4z3ARCE17+NVR4sgcSl+dcidt1dTO6TBva4y
-DqXrCCoxtIDbAnwdt5lLL9fhVou/65WRgc4Gp3rdyvVbGuHIQ8IsHatRl4y3SEKOJiJ+2et0/9zA
-WvYONVvXDkfXnRkP2A4I20s7bI/pdoheRlzHooCE/n6Ka7tsuTpXXXAAwt9laZGle7tb1BibErxH
-ONog03adc9KcvhkV5s0QnbeReM0ANoXjVajcP46QXbaXuuxr/KVEnD9VgOpSNBzA+FCXokdyLj46
-aqIKfyU61oNOjfoGLYTlEDDBotz3Q492tUHD630/i3BKZv5yYkGP+1oTHc/7HhM2NzomG0UsIrhD
-mg0b/uTck1uVOfLQQ6FGuUOXMG7MPL4y7ksGqATuVehRxUJsJfzD4Yh2YUkNmr/r+EMNmpZaEg6l
-F0npikPpITbfoIWwz7jcVVqUcQXNr3QiexeWSPPCuCLit6w10VOm6lsJXF3+iRMlcH3wA+P+Fqhg
-xpWaMK5go4vCuBXPdq+G/+XY179u57DQdBFqDZ4rG2vVkXWmGR4lqTcAlqTqKrBGDumxZC3vTzfP
-aTWSqw0ibPGG6eSTT8GBj8xyoXtVtD7MD2KO5pWfSk21UjdhYZF1b4DU5sjoEBE+xcBX8CNiTLIp
-p2ilm6b+SpySxWYc8tUAKbWUXpRCxvEnDaimT2eytFomZJbI/fDolH9WatyFnuSUk3i0ubMLduyn
-O/a0WqtTVI1iFS14NPPTqWuujsl1UqkCHwLX/ubyL+Q8TmLlRZ3EuZEaRTZlw5ySTYYUBPyqjJl3
-cUheNIFAEua0dpjwFXUlm2F6tc4/DjM11e7YL2Sr3Z/zzdoZ/C/5ZqRolp+kyYnJp+XXC1Owyzpv
-5Piu1vrT8UWtpxlrE2LS9+9V7Scytjrft4n9zSTmn5PkV4c1RMtzLyMtGLjt58sbHk8GBw3dUO77
-SOTISZvpn76PRGTpwrtb2VAMyFAI5F9hCfmaVl/LsVKt4SKD+kaEgW4zi3o3ueNW5RRj8Q9LYFMb
-16EYV3JooXYXRNPjKiN/dzAoVILpUeYQxeR3ctqpaPA3yjBBPBsQpiaGjyjJKXVtFvnlcI826yL4
-pQnqurc0la/xYYNgREJr5nCXhOgcTU7fJyohp0DU/HeeO4ngkjOTz+0UI8t66D0T1nh/NCnQ25jl
-YnXuxmIZE92EUXF4JanOYafjw+mTUYKsJGFtU0WO48d8x83cqYe0djfrgaarb+tmFgRbjfpiugGd
-QuoRU1Syx0Tf7YWXzhuY5k+XROhlT3v7L1c7sBtuJP1BQ2rOx8b5uMk258laK/ri9Tg1M62c04to
-Ul0Ioqft9BeCiPL4xasp12nT+4xIXcCHqyye2PFi4rKfDCi6l0HPqlHd45erJsc+EOqd6X+6P6I/
-x/CUZ/p81u/hGqpvZ/0uNrB9WOuqYELP2n5KTsxGoVDeyWR9vwyl+cc711vdSOH+qczhZDXkYASj
-/7+YG9ZkFf1PAX9IOj4cqeUA/3vD9eJzq4+cwl/yytu/npEQPMU7JpC3uPUWSAP4j7fTdlmFNaaY
-qZ90aFWpp+eb+/hRq7aXnaNPNzHxFIkynsb3MR448jFTjW/HerExrXWuAX9LJz1fppsBFw8c6QFn
-lNdviqerv3gd+CBKf628Hin+XX/9oAP/SHl5Zp+mVawPxU5VqUYVInaCmr+qs8bhjci52jq8QdfX
-seENrytRePMP4o0/V/1fdHZOMgQlWEWynyKKp7LPOqLYHyOKvkwhh4olV56OXuZQTyd6Kv5Z9+IA
-xpmTRX/KwW/yyOz0u8d89z3RxwgLeHm1dYTVH6bzbTpIsG3rT1d7O3gXdLW3f/ziYtqL5lBTnEbT
-9T39+tMGaUOGPyoNWLWqfRlmmDbQHvtAqHem70/AwMmst+jRk6qin64KZwPCHyPKXhrh+YoevRr1
-KYu3mkOUACbK5L+IA/48dXX8m1hi/2COkw60WQfihO3f+tb7B9+6B0FOZH9NI1Uf2tJwmzd1tHn1
-skl0Yepf+6tfh3lxWf/c7WVWvXF7Kc1FQ/O/8AH/numCzp/hM1ldj1CUSwYmq1KJqFnGXLHCfJ88
-3KgQjxQa9D1Z51PeYstV3vHVUn04HP5JN1v72XtXMpZ7cY7rtOGsYjlOaUZ9o8s846tlUOtBmzmI
-S7NtzoBBdzgmujxf0kmL48MtO0AAf01kud3BjHDZBlwAhHCfp3D/z1LVape9BYKxQFPQ2yDTPNIN
-uuHLJ90jmXGds+8t3G9wd5kXnYWrI/UnGWRL/QAB0NxuSzyVe+ojT3mewzmZ8ljW2815xJqvuFxV
-r3Sc2T/q3Zih5pdTDvoyiT1p8XKgWcsqAkUtA3wMc5j8fQFOrD0amFkzQFKe+dyC872kxN9L8Y/+
-diYNlwsU/OR4Vaxc8U4ka++CVwSpgB2oYYmQDhRSgSGdEKTwiCAV/vGSNaSumUGQih6kg17M+P+6
-lvxv2snqMO6CbeCSFaKMyhifOKUZb1+NnsxWVLl7tvOgI9OUlaOffaBp/PbhZtfuGOKV68Mkw+c2
-KDAejkr/Y2AaSB/uEG+/FEs/Viea0ZuParKjFyNMN1h1pGMF+qeEURxCNiPQPaHJK7D3Wu7JaUEY
-Dp7R+dv6Mz+Jnt+TAMm+5gEMpugnl6NBuvkaPK5fXxwux6d7FSe56TIaSTY8OhTZOUw7ycQH7HwI
-lqPS1js0+TQSy2H380gbPxIH08rcdW5xWItEKX6uwbSjkE/cxpqoWrbllJIEayPRTzJHfw9MSPMI
-E6j2DwG8A2EmmP5Wu4y+fuRYSWYC9pGpZZz/vZJgOX/l5gwCiZ6zuu5oyMcPRTldLe2nK2Vhfma/
-gRDzYWOxEFNMMn/Ci+qe5uPmvFTh/FNPFhqr0K+fZjNZLVIVB57fDJy8qgxe5xwBm+UbI++BXZTf
-v3QD/sccPZS3K6uTh/JXKetsNTpuCfnqR6eSOGcnJ6X2L1nMSek55QoH51yfdRD8eg5qUmb6JHlq
-WpvSbbRhQ5ZU1r9+YSiAZW5SoyxDqf3K1qUz/oPRJTXLKw315U/GAKv+R8PzBA65CuMvzsFT6EvW
-kmgS9HlP9NXCvMAcEG+OCJSFf2Kg62RV99bS8tH96ikzcZOD/JM+9nY+weCzcpmUq2WSBGd9dwjj
-IbMAc5na7j0ouULozROhO83FnNSaQk98Qtgm49wJdPLvfTugsSfyILalwvsvL2mY9Ja+zthBBq3F
-i1tVnbuZNO+J1OXwEYR2r+DFE3nW/LNbJ/tN82veE/qtZJobgMQu/HrvH9fbSWDnyp+NqIBvuxpb
-d4Bh62vfVs2/kIaEGTvv1uvbsm4gJyxH3+sK2V2UriDxYPrUapmnurGqKtfBXgCbvBU9T0n8DxMc
-2Ck=</a>
+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
+P/KX4D+KrGX0</a>
       <a name="dataWidth" val="16"/>
     </comp>
     <comp lib="9" loc="(640,340)" name="Address Decoder"/>
@@ -2054,7 +2061,8 @@ d4Bh62vfVs2/kIaEGTvv1uvbsm4gJyxH3+sK2V2UriDxYPrUapmnurGqKtfBXgCbvBU9T0n8DxMc
     <comp loc="(1930,900)" name="Output Device"/>
     <comp loc="(2280,670)" name="Input Device"/>
     <comp loc="(2280,900)" name="Output Device"/>
-    <comp loc="(2600,900)" name="Output Device"/>
+    <comp loc="(2640,670)" name="Sound Card"/>
+    <comp loc="(2640,900)" name="Output Device"/>
     <comp loc="(420,450)" name="CPU"/>
     <comp loc="(880,570)" name="KBD Controller"/>
     <comp loc="(880,770)" name="TTY Controller"/>
@@ -2264,11 +2272,11 @@ d4Bh62vfVs2/kIaEGTvv1uvbsm4gJyxH3+sK2V2UriDxYPrUapmnurGqKtfBXgCbvBU9T0n8DxMc
     <wire from="(2120,710)" to="(2120,810)"/>
     <wire from="(2120,710)" to="(2180,710)"/>
     <wire from="(2120,810)" to="(2120,940)"/>
-    <wire from="(2120,810)" to="(2440,810)"/>
+    <wire from="(2120,810)" to="(2480,810)"/>
     <wire from="(2120,940)" to="(2180,940)"/>
     <wire from="(2140,730)" to="(2140,850)"/>
     <wire from="(2140,730)" to="(2180,730)"/>
-    <wire from="(2160,1030)" to="(2480,1030)"/>
+    <wire from="(2160,1030)" to="(2500,1030)"/>
     <wire from="(2160,650)" to="(2160,670)"/>
     <wire from="(2160,670)" to="(2180,670)"/>
     <wire from="(2160,880)" to="(2160,900)"/>
@@ -2292,13 +2300,13 @@ d4Bh62vfVs2/kIaEGTvv1uvbsm4gJyxH3+sK2V2UriDxYPrUapmnurGqKtfBXgCbvBU9T0n8DxMc
     <wire from="(2280,940)" to="(2300,940)"/>
     <wire from="(2280,980)" to="(2300,980)"/>
     <wire from="(2300,620)" to="(2300,690)"/>
-    <wire from="(2300,620)" to="(2640,620)"/>
+    <wire from="(2300,620)" to="(2680,620)"/>
     <wire from="(2300,690)" to="(2300,920)"/>
     <wire from="(2300,940)" to="(2300,980)"/>
     <wire from="(2320,540)" to="(2320,670)"/>
     <wire from="(2320,710)" to="(2320,750)"/>
     <wire from="(2320,830)" to="(2320,900)"/>
-    <wire from="(2320,830)" to="(2620,830)"/>
+    <wire from="(2320,830)" to="(2660,830)"/>
     <wire from="(2340,460)" to="(2340,710)"/>
     <wire from="(2340,710)" to="(2340,1090)"/>
     <wire from="(2340,710)" to="(2400,710)"/>
@@ -2312,27 +2320,37 @@ d4Bh62vfVs2/kIaEGTvv1uvbsm4gJyxH3+sK2V2UriDxYPrUapmnurGqKtfBXgCbvBU9T0n8DxMc
     <wire from="(2410,930)" to="(2410,1010)"/>
     <wire from="(2420,670)" to="(2440,670)"/>
     <wire from="(2440,670)" to="(2440,770)"/>
-    <wire from="(2440,810)" to="(2440,940)"/>
-    <wire from="(2440,940)" to="(2500,940)"/>
+    <wire from="(2460,690)" to="(2460,790)"/>
+    <wire from="(2460,690)" to="(2540,690)"/>
     <wire from="(2460,790)" to="(2460,920)"/>
-    <wire from="(2460,920)" to="(2500,920)"/>
-    <wire from="(2480,880)" to="(2480,900)"/>
-    <wire from="(2480,900)" to="(2500,900)"/>
-    <wire from="(2480,960)" to="(2480,1030)"/>
-    <wire from="(2480,960)" to="(2500,960)"/>
-    <wire from="(2590,1000)" to="(2590,1140)"/>
+    <wire from="(2460,920)" to="(2540,920)"/>
+    <wire from="(2480,710)" to="(2480,810)"/>
+    <wire from="(2480,710)" to="(2540,710)"/>
+    <wire from="(2480,810)" to="(2480,940)"/>
+    <wire from="(2480,940)" to="(2540,940)"/>
+    <wire from="(2500,730)" to="(2500,960)"/>
+    <wire from="(2500,730)" to="(2540,730)"/>
+    <wire from="(2500,960)" to="(2500,1030)"/>
+    <wire from="(2500,960)" to="(2540,960)"/>
+    <wire from="(2520,650)" to="(2520,670)"/>
+    <wire from="(2520,670)" to="(2540,670)"/>
+    <wire from="(2520,880)" to="(2520,900)"/>
+    <wire from="(2520,900)" to="(2540,900)"/>
     <wire from="(260,260)" to="(1180,260)"/>
     <wire from="(260,260)" to="(260,530)"/>
     <wire from="(260,530)" to="(280,530)"/>
     <wire from="(260,690)" to="(260,780)"/>
     <wire from="(260,690)" to="(280,690)"/>
-    <wire from="(2600,900)" to="(2620,900)"/>
-    <wire from="(2600,920)" to="(2640,920)"/>
-    <wire from="(2600,940)" to="(2620,940)"/>
-    <wire from="(2600,980)" to="(2620,980)"/>
-    <wire from="(2620,830)" to="(2620,900)"/>
-    <wire from="(2620,940)" to="(2620,980)"/>
-    <wire from="(2640,620)" to="(2640,920)"/>
+    <wire from="(2630,1000)" to="(2630,1140)"/>
+    <wire from="(2640,670)" to="(2660,670)"/>
+    <wire from="(2640,900)" to="(2660,900)"/>
+    <wire from="(2640,920)" to="(2680,920)"/>
+    <wire from="(2640,940)" to="(2660,940)"/>
+    <wire from="(2640,980)" to="(2660,980)"/>
+    <wire from="(2660,670)" to="(2660,830)"/>
+    <wire from="(2660,830)" to="(2660,900)"/>
+    <wire from="(2660,940)" to="(2660,980)"/>
+    <wire from="(2680,620)" to="(2680,920)"/>
     <wire from="(310,720)" to="(310,850)"/>
     <wire from="(340,880)" to="(340,900)"/>
     <wire from="(340,900)" to="(380,900)"/>
@@ -5973,6 +5991,83 @@ d4Bh62vfVs2/kIaEGTvv1uvbsm4gJyxH3+sK2V2UriDxYPrUapmnurGqKtfBXgCbvBU9T0n8DxMc
     <wire from="(550,110)" to="(570,110)"/>
     <wire from="(550,140)" to="(570,140)"/>
     <wire from="(570,50)" to="(570,110)"/>
+    <wire from="(90,140)" to="(340,140)"/>
+    <wire from="(90,180)" to="(360,180)"/>
+  </circuit>
+  <circuit name="Sound Card">
+    <a name="appearance" val="custom"/>
+    <appear>
+      <text dominant-baseline="central" fill="#404040" font-family="SansSerif" font-size="10" text-anchor="start" x="59" y="139">clk_s</text>
+      <text dominant-baseline="top" font-family="SansSerif" font-size="12" text-anchor="middle" x="100" y="55">Sound Card</text>
+      <rect fill="none" height="100" stroke="#000000" stroke-width="2" width="100" x="50" y="50"/>
+      <text dominant-baseline="central" fill="#404040" font-family="SansSerif" font-size="10" text-anchor="start" x="59" y="80">id</text>
+      <text dominant-baseline="central" fill="#404040" font-family="SansSerif" font-size="10" text-anchor="start" x="60" y="99">addr</text>
+      <text dominant-baseline="central" fill="#404040" font-family="SansSerif" font-size="10" text-anchor="start" x="59" y="119">en</text>
+      <text dominant-baseline="central" fill="#404040" font-family="SansSerif" font-size="10" text-anchor="start" x="110" y="80">bus_in</text>
+      <circ-port height="8" pin="160,100" width="8" x="146" y="76"/>
+      <circ-port height="8" pin="90,140" width="8" x="46" y="136"/>
+      <circ-port height="8" pin="90,180" width="8" x="46" y="116"/>
+      <circ-port height="8" pin="120,220" width="8" x="46" y="76"/>
+      <circ-port height="8" pin="120,260" width="8" x="46" y="96"/>
+      <circ-anchor facing="east" height="6" width="6" x="147" y="77"/>
+    </appear>
+    <comp lib="0" loc="(120,220)" name="Pin">
+      <a name="label" val="id"/>
+      <a name="width" val="4"/>
+    </comp>
+    <comp lib="0" loc="(120,260)" name="Pin">
+      <a name="label" val="addr"/>
+      <a name="width" val="4"/>
+    </comp>
+    <comp lib="0" loc="(160,100)" name="Pin">
+      <a name="label" val="bus_in"/>
+      <a name="width" val="16"/>
+    </comp>
+    <comp lib="0" loc="(230,250)" name="Splitter">
+      <a name="fanout" val="4"/>
+      <a name="incoming" val="4"/>
+    </comp>
+    <comp lib="0" loc="(90,140)" name="Pin">
+      <a name="label" val="clk_s"/>
+    </comp>
+    <comp lib="0" loc="(90,180)" name="Pin">
+      <a name="label" val="en"/>
+    </comp>
+    <comp lib="1" loc="(210,250)" name="XNOR Gate">
+      <a name="size" val="30"/>
+      <a name="width" val="4"/>
+    </comp>
+    <comp lib="1" loc="(320,220)" name="AND Gate">
+      <a name="inputs" val="4"/>
+      <a name="size" val="30"/>
+    </comp>
+    <comp lib="1" loc="(390,180)" name="AND Gate">
+      <a name="inputs" val="3"/>
+      <a name="size" val="30"/>
+    </comp>
+    <comp lib="9" loc="(430,100)" name="Beeper"/>
+    <wire from="(120,220)" to="(140,220)"/>
+    <wire from="(120,260)" to="(160,260)"/>
+    <wire from="(140,220)" to="(140,240)"/>
+    <wire from="(140,240)" to="(160,240)"/>
+    <wire from="(160,100)" to="(430,100)"/>
+    <wire from="(210,250)" to="(230,250)"/>
+    <wire from="(250,210)" to="(260,210)"/>
+    <wire from="(250,220)" to="(270,220)"/>
+    <wire from="(250,230)" to="(290,230)"/>
+    <wire from="(250,240)" to="(290,240)"/>
+    <wire from="(260,200)" to="(260,210)"/>
+    <wire from="(260,200)" to="(290,200)"/>
+    <wire from="(270,210)" to="(270,220)"/>
+    <wire from="(270,210)" to="(290,210)"/>
+    <wire from="(320,220)" to="(340,220)"/>
+    <wire from="(340,140)" to="(340,170)"/>
+    <wire from="(340,170)" to="(360,170)"/>
+    <wire from="(340,190)" to="(340,220)"/>
+    <wire from="(340,190)" to="(360,190)"/>
+    <wire from="(390,180)" to="(410,180)"/>
+    <wire from="(410,120)" to="(410,180)"/>
+    <wire from="(410,120)" to="(430,120)"/>
     <wire from="(90,140)" to="(340,140)"/>
     <wire from="(90,180)" to="(360,180)"/>
   </circuit>
