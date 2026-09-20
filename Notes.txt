@@ -167,3 +167,5 @@ Compiler: Allow inline assembly code
 
 BASIC Interpreter
 
+Single Player 'Pong Squash'
+
